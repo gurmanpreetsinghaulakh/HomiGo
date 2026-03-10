@@ -1,0 +1,211 @@
+body{
+    
+
+    font-family: "Plus Jakarta Sans", serif !important;
+   display: flex;
+   flex-direction: column;
+    min-height: 100vh;
+  
+}
+
+.navbar{
+    height: 5rem;
+    background-color: white;
+}
+.fa-compass{
+  color: #fe424d;  
+  font-size: 2rem;
+}
+.nav-link{
+    color: #222222 !important; 
+}
+.f-info-links a{
+    text-decoration: none;
+    color: #222222;
+}
+f-info-links a :hover{
+    text-decoration: underline;
+}
+.f-info-links,.f-info-socials,f-info-brand{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.f-info-socials i{
+    font-size: 1.2rem;
+    margin: 1rem;
+}
+.f-info {
+    text-align: center;
+    display: flex;
+    height: 8rem;
+    background-color:#ebebeb ;
+    flex-wrap:  wrap;
+    justify-content: center;
+    align-items:space-evenly;
+}
+
+.container{
+  flex: 1;
+}
+
+/* cards */
+.listing-card {
+    border : none !important;
+    margin-bottom: 2rem !important;
+
+}
+.card-img-top{
+    border-radius: 1rem !important;
+    width: 100% !important;
+    object-fit: cover !important;
+}
+
+.card-body{
+    padding: 0 !important;
+
+}
+.card-text p{
+font-weight: 400 !important;
+}
+.listing-link{
+    text-decoration: none;
+    /* color: #222222; */
+}
+.card-img-overlay{
+   opacity: 0;
+}
+.card-img-overlay:hover{
+    opacity: 0.2;
+    background-color: white;
+}
+.add-btn{
+    background-color: #fe424d !important;
+    border:none !important;
+}
+  /* edit page */
+  .edit-btn{
+    background-color: #fe424d !important;
+    border:none !important;
+
+  }
+.show-img{
+height: 30vh;
+
+  }
+  
+ 
+  .btns{
+    display: flex;
+  }
+  .show-card{
+    padding-left:0;
+    padding-right:0;
+
+  }
+
+.rating {
+  --dir: right;
+  --fill: gold;
+  --fillbg: gold;
+  --star: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.25l-6.188 3.75 1.641-7.031-5.438-4.734 7.172-0.609 2.813-6.609 2.813 6.609 7.172 0.609-5.438 4.734 1.641 7.031z"/></svg>');
+  --stars: 5;
+  --starsize: 3rem;
+  --symbol: var(--star);
+  --value: 1;
+  --w: calc(var(--stars) * var(--starsize));
+  --x: calc(100% * (var(--value) / var(--stars)));
+
+  block-size: var(--starsize);
+  inline-size: var(--w);
+  position: relative;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to var(--dir), var(--fill) 0 var(--x), var(--fillbg) 0 var(--x));
+  mask: repeat left center/var(--starsize) var(--symbol);
+  -webkit-mask: repeat left center/var(--starsize) var(--symbol);
+  cursor: pointer;
+  border: none;
+}
+
+[dir="rtl"] .rating {
+  --dir: left;
+}
+
+.rating::-moz-range-track {
+  background: none;
+  block-size: 100%;
+}
+
+.rating::-webkit-slider-runnable-track {
+  background: none;
+  block-size: 100%;
+}
+
+.rating::-moz-range-thumb {
+  height: var(--starsize);
+  width: var(--starsize);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rating::-webkit-slider-thumb {
+  height: var(--starsize);
+  width: var(--starsize);
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.rating, .rating-label {
+  display: block;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.rating-label {
+  margin-block-end: 1rem;
+}
+
+/* Fallback if JavaScript is disabled */
+.rating--nojs::-moz-range-track {
+  background: var(--fillbg);
+}
+
+.rating--nojs::-moz-range-progress {
+  background: var(--fill);
+  block-size: 100%;
+  mask: repeat left center/var(--starsize) var(--symbol);
+}
+
+.rating--nojs::-webkit-slider-runnable-track {
+  background: var(--fillbg);
+}
+
+.rating--nojs::-webkit-slider-thumb {
+  background-color: var(--fill);
+  box-shadow: calc(0rem - var(--w)) 0 0 var(--w) var(--fill);
+  opacity: 1;
+  width: 1px;
+}
+
+[dir="rtl"] .rating--nojs::-webkit-slider-thumb {
+  box-shadow: var(--w) 0 0 var(--w) var(--fill);
+}
+
+
+/* MAP */
+
+
+
+#map { height: 350px; width: 550px; }
+ @media only screen and (max-width: 600px) {
+       #map { height: 150px; width: 250px; }
+    }
+    @media only screen and (min-width: 601px) and (max-width: 768px) {
+        /* Tablet-specific styles go here */
+         #map { height: 250px; width: 350px; }
+    }
