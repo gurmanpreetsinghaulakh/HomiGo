@@ -133,8 +133,10 @@ module.exports.createroute = async (req, res, next) => {
     return res.status(400).json({ success: false, error: "Image is required" });
   }
 
-  const url = req.file.path;
   const filename = req.file.filename;
+  const url = req.file.path && req.file.path.startsWith('http')
+    ? req.file.path
+    : `/uploads/${filename}`;
 
   const newlisting = new listing(req.body.listing);
   newlisting.owner = req.user._id;
@@ -170,8 +172,10 @@ module.exports.updateroute = async (req, res) => {
   let { id } = req.params;
   let Listing = await listing.findByIdAndUpdate(id, { ...req.body.listing });
   if (typeof (req.file) !== "undefined") {
-    let url = await req.file.path;
-    let filename = await req.file.filename;
+    const filename = req.file.filename;
+    const url = req.file.path && req.file.path.startsWith('http')
+      ? req.file.path
+      : `/uploads/${filename}`;
 
     Listing.Image = { url, filename };
     await Listing.save();
