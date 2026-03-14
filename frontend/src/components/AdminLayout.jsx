@@ -28,7 +28,7 @@ export default function AdminLayout({ children, title, subtitle, actions }) {
             {/* ── SIDEBAR ── */}
             <aside className="db-sidebar db-sidebar-admin">
                 <div className="db-sidebar-top">
-                    <Link to="/" className="db-logo">✦ Stazy</Link>
+                    <Link to="/" className="db-logo">✦ HomiGo</Link>
                     <div className="admin-badge-strip">
                         <span className="admin-badge-pill">🛡 Admin Panel</span>
                     </div>

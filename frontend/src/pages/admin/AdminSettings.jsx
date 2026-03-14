@@ -5,9 +5,9 @@ import { useGlobalModal } from '../../context/ModalContext';
 import AdminLayout from '../../components/AdminLayout';
 
 const INITIAL_SETTINGS = {
-    siteName: 'Stazy',
+    siteName: 'HomiGo',
     tagline: 'Your home away from home.',
-    contactEmail: 'support@stazy.com',
+    contactEmail: 'support@homigo.com',
     currency: 'INR',
     maxListingImages: 5,
     minNights: 1,
@@ -70,14 +70,14 @@ export default function AdminSettings() {
         if (!user) { navigate('/login'); return; }
         if (!user.isAdmin) { navigate('/dashboard'); return; }
         // Load from localStorage if available
-        const stored = localStorage.getItem('stazy_admin_settings');
+        const stored = localStorage.getItem('homigo_admin_settings');
         if (stored) { try { setSettings(JSON.parse(stored)); } catch { } }
     }, [user, navigate]);
 
     const update = (key, val) => setSettings(s => ({ ...s, [key]: val }));
 
     const handleSave = () => {
-        localStorage.setItem('stazy_admin_settings', JSON.stringify(settings));
+        localStorage.setItem('homigo_admin_settings', JSON.stringify(settings));
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
     };
@@ -90,7 +90,7 @@ export default function AdminSettings() {
             confirmText: 'Reset to Defaults',
             onConfirm: () => {
                 setSettings(INITIAL_SETTINGS);
-                localStorage.removeItem('stazy_admin_settings');
+                localStorage.removeItem('homigo_admin_settings');
                 closeModal();
             }
         });
@@ -215,7 +215,7 @@ export default function AdminSettings() {
                                 </div>
                             </Field>
                             <div className="settings-info-box">
-                                💡 At {settings.commissionRate}% commission, a ₹10,000 booking earns Stazy ₹{(10000 * settings.commissionRate / 100).toLocaleString()}.
+                                💡 At {settings.commissionRate}% commission, a ₹10,000 booking earns HomiGo ₹{(10000 * settings.commissionRate / 100).toLocaleString()}.
                             </div>
                         </SettingsSection>
                     </>
@@ -320,7 +320,7 @@ export default function AdminSettings() {
                                             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                                             const url = URL.createObjectURL(blob);
                                             const a = document.createElement('a');
-                                            a.href = url; a.download = 'stazy_listings.json'; a.click();
+                                            a.href = url; a.download = 'homigo_listings.json'; a.click();
                                         } catch {
                                             showModal({
                                                 title: 'Export Failed',

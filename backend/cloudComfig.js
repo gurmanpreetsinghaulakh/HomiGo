@@ -10,7 +10,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'stazy_dev',
+    folder: 'homigo_dev',
     allowedFormats:["png","jpg","jpeg"],
   },
 });

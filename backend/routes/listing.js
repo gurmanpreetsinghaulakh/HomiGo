@@ -9,14 +9,14 @@ const upload = multer({ storage });
 
 
 router.route("/")
-    .get(isLoggedIn, wrapAsync(listingcontroller.index))
-    .post(isLoggedIn, isAdmin, upload.single('listing[Image]'), validateListing, wrapAsync(listingcontroller.createroute));
+    .get(wrapAsync(listingcontroller.index))
+    .post(isLoggedIn, isAdmin, upload.single('listing[image]'), validateListing, wrapAsync(listingcontroller.createroute));
 
 //search route
-router.get("/search", isLoggedIn, wrapAsync(listingcontroller.searchListings));
+router.get("/search", wrapAsync(listingcontroller.searchListings));
 
 //suggestions route
-router.get("/suggestions", isLoggedIn, wrapAsync(listingcontroller.getSuggestions));
+router.get("/suggestions", wrapAsync(listingcontroller.getSuggestions));
 
 //filter route
 router.get("/filter", isLoggedIn, wrapAsync(listingcontroller.filterListings));

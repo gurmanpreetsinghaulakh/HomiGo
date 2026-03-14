@@ -10,7 +10,8 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:4000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        // Do not rewrite paths so backend can mount API routes at /api/*
+        // (backend is now configured to handle /api/* paths).
       }
     }
   }

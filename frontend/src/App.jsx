@@ -27,7 +27,7 @@ import NewListing from './pages/admin/NewListing';
 import EditListing from './pages/admin/EditListing';
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   // Paths that should not show the standard Bootstrap navbar
@@ -37,17 +37,21 @@ function AppRoutes() {
   const showNavbar = !isBare;
 
   // Helpers: guards
-  const adminGuard = (element) =>
-    user && user.isAdmin
+  const adminGuard = (element) => {
+    if (loading) return null;
+    return user && user.isAdmin
       ? element
       : user
         ? <Navigate to="/dashboard" replace />
         : <Navigate to="/login" replace />;
+  };
 
-  const userGuard = (element) =>
-    user
+  const userGuard = (element) => {
+    if (loading) return null;
+    return user
       ? element
       : <Navigate to="/login" replace />;
+  };
 
   return (
     <>

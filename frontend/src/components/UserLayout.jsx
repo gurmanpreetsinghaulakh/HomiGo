@@ -28,7 +28,7 @@ export default function UserLayout({ children, title, subtitle, actions }) {
             {/* ── SIDEBAR ── */}
             <aside className="db-sidebar">
                 <div className="db-sidebar-top">
-                    <Link to="/" className="db-logo">✦ Stazy</Link>
+                    <Link to="/" className="db-logo">✦ HomiGo</Link>
                     <nav className="db-nav">
                         {USER_NAV.map((item) => (
                             <Link
@@ -48,7 +48,7 @@ export default function UserLayout({ children, title, subtitle, actions }) {
                         </div>
                         <div>
                             <p className="db-uname">{user?.username}</p>
-                            <p className="db-role">Stazy Member</p>
+                            <p className="db-role">HomiGo Member</p>
                         </div>
                     </div>
                     <button className="db-logout-btn" onClick={handleLogout}>

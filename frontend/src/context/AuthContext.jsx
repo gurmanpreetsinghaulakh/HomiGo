@@ -8,12 +8,23 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         // Check if there's a stored user session
-        const storedUser = localStorage.getItem('stazy_user');
+        let storedUser = localStorage.getItem('homigo_user');
+
+        // Migrate old key if it exists
+        if (!storedUser) {
+            const legacy = localStorage.getItem('stazy_user');
+            if (legacy) {
+                storedUser = legacy;
+                localStorage.setItem('homigo_user', legacy);
+                localStorage.removeItem('stazy_user');
+            }
+        }
+
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser));
             } catch {
-                localStorage.removeItem('stazy_user');
+                localStorage.removeItem('homigo_user');
             }
         }
         setLoading(false);
@@ -21,7 +32,7 @@ export function AuthProvider({ children }) {
 
     const login = (userData) => {
         setUser(userData);
-        localStorage.setItem('stazy_user', JSON.stringify(userData));
+        localStorage.setItem('homigo_user', JSON.stringify(userData));
     };
 
     const logout = async () => {
@@ -31,7 +42,7 @@ export function AuthProvider({ children }) {
             console.error('Logout error:', err);
         }
         setUser(null);
-        localStorage.removeItem('stazy_user');
+        localStorage.removeItem('homigo_user');
     };
 
     return (

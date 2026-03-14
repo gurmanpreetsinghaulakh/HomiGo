@@ -15,13 +15,12 @@ module.exports.signup = async (req, res) => {
       if (err) {
         return next(err);
       }
-      res.status(201).json({ success: true, message: "Welcome to Stazy", user: registeredUser });
+      res.status(201).json({ success: true, message: "Welcome to HomiGo", user: registeredUser });
     });
   } catch (e) {
     res.status(400).json({ success: false, error: e.message });
   }
 };
-
 
 
 module.exports.renderloginform = (req, res) => {
@@ -54,7 +53,7 @@ module.exports.login = async (req, res) => {
     email: req.user?.email,
     isAdmin: req.user?.isAdmin || false,
   };
-  res.json({ success: true, message: "Welcome to Stazy", RedirectUrl, user: userPayload });
+  res.json({ success: true, message: "Welcome to HomiGo", RedirectUrl, user: userPayload });
 };
 
 

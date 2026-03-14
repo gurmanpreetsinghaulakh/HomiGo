@@ -7,6 +7,7 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const fs = require("fs");
 const path = require("path");
 const methodOverride = require('method-override');
 const ejsmate = require("ejs-mate");
@@ -66,18 +67,29 @@ async function connectWithRetry(attempt = 1) {
 
 async function setupAdmin() {
     try {
-        const adminEmail = "ketansingla3246@gmail.com";
+        // Admin credentials can be configured via environment variables.
+        // If you want to create/change the admin user, set these and restart the server.
+        const adminEmail = process.env.ADMIN_EMAIL || "ketansingla3246@gmail.com";
+        const adminUsername = process.env.ADMIN_USERNAME || "ketansingla3246";
+        const adminPassword = process.env.ADMIN_PASSWORD || "ketan@1885";
+
         const existingAdmin = await User.findOne({ email: adminEmail });
         if (!existingAdmin) {
             const adminUser = new User({
                 email: adminEmail,
-                username: "ketansingla3246",
+                username: adminUsername,
                 isAdmin: true
             });
-            await User.register(adminUser, "ketan@1885");
-            console.log("Admin account (ketansingla3246@gmail.com) successfully configured!");
+            await User.register(adminUser, adminPassword);
+            console.log(`Admin account (${adminEmail}) successfully configured!`);
         } else {
-            console.log("Admin account already exists.");
+            if (!existingAdmin.isAdmin) {
+                existingAdmin.isAdmin = true;
+                await existingAdmin.save();
+                console.log(`Existing user (${adminEmail}) upgraded to admin.`);
+            } else {
+                console.log("Admin account already exists.");
+            }
         }
     } catch (e) {
         console.error("Error setting up admin account:", e);
@@ -142,12 +154,37 @@ app.use((req, res, next) => {
 // })
 
 
-app.use("/listings", listingsRouter);
-app.use("/listings/:id/reviews", reviewRouter);
-app.use("/", userRouter);
+// If a frontend build exists, serve it (supports deploying backend + frontend together).
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+const shouldServeFrontend = process.env.SERVE_FRONTEND === "true" || process.env.NODE_ENV === "production";
+const hasFrontendDist = fs.existsSync(frontendDistPath);
+if (hasFrontendDist && shouldServeFrontend) {
+    app.use(express.static(frontendDistPath));
+}
 
-// Root return & health check for Render
-app.get('/', (req, res) => res.json({ success: true, message: "Welcome to Stazy API" }));
+// API routes (frontend expects /api/* endpoints)
+app.use("/api/listings/:id/reviews", reviewRouter);
+app.use("/api/listings", listingsRouter);
+app.use("/api", userRouter);
+
+// Serve React app for non-API routes when build is available
+if (hasFrontendDist && shouldServeFrontend) {
+    app.get('/', (req, res) => res.sendFile(path.join(frontendDistPath, "index.html")));
+    app.get('*', (req, res, next) => {
+        if (req.originalUrl.startsWith('/api/')) return next();
+        return res.sendFile(path.join(frontendDistPath, "index.html"));
+    });
+} else {
+    // When running locally with the React dev server, redirect the root URL
+    // to the Vite app so you can see the UI without building.
+    if (process.env.NODE_ENV !== "production") {
+        app.get('/', (req, res) => res.redirect('http://localhost:5173'));
+    } else {
+        // If no frontend build is available in production, return a minimal JSON response.
+        app.get('/', (req, res) => res.json({ success: true, message: "Welcome to HomiGo API" }));
+    }
+}
+
 app.get('/_health', (req, res) => res.send('ok'));
 
 app.all("*", (req, res, next) => {

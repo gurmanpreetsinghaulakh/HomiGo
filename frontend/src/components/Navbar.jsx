@@ -42,7 +42,7 @@ export default function Navbar() {
         <nav className="navbar navbar-expand-md sticky-top">
             <div className="container-fluid sticky-top">
                 <Link className="navbar-brand" to={user?.isAdmin ? '/admin-dashboard' : user ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--stays-brand)' }}>
-                    <span style={{ fontSize: '1.25rem' }}>✦</span> <b>Stazy</b>
+                    <span style={{ fontSize: '1.25rem' }}>✦</span> <b>HomiGo</b>
                 </Link>
                 <button className="navbar-toggler bg-body-light" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"

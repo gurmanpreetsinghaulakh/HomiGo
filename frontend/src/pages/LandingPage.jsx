@@ -40,21 +40,21 @@ const testimonials = [
     {
         name: 'Priya Sharma',
         location: 'Mumbai, India',
-        text: 'Stazy made our Goa trip absolutely magical. Found a beachfront villa that wasn\'t on any other platform!',
+        text: 'HomiGo made our Goa trip absolutely magical. Found a beachfront villa that wasn\'t on any other platform!',
         avatar: 'PS',
         rating: 5,
     },
     {
         name: 'Rahul Verma',
         location: 'Delhi, India',
-        text: 'The booking process was seamless and the host was incredibly welcoming. Will definitely use Stazy again.',
+        text: 'The booking process was seamless and the host was incredibly welcoming. Will definitely use HomiGo again.',
         avatar: 'RV',
         rating: 5,
     },
     {
         name: 'Ananya Patel',
         location: 'Bangalore, India',
-        text: 'Discovered a hidden Himalayan retreat through Stazy. The experience was beyond words.',
+        text: 'Discovered a hidden Himalayan retreat through HomiGo. The experience was beyond words.',
         avatar: 'AP',
         rating: 5,
     },
@@ -97,7 +97,7 @@ export default function LandingPage() {
             <nav className="landing-nav">
                 <div className="landing-nav-inner">
                     <Link to="/" className="landing-logo">
-                        <span className="logo-icon">✦</span> Stazy
+                        <span className="logo-icon">✦</span> HomiGo
                     </Link>
                     <div className="landing-nav-links">
                         <a href="#features" className="nav-pill">Features</a>
@@ -119,7 +119,7 @@ export default function LandingPage() {
                     </h1>
                     <p className="hero-subtitle">
                         Discover unique homes, villas, and experiences across the globe.
-                        Stazy connects you with extraordinary stays curated just for you.
+                        HomiGo connects you with extraordinary stays curated just for you.
                     </p>
                     <div className="hero-cta-group">
                         <Link to="/signup" className="hero-cta-primary" id="hero-login-btn">
@@ -146,10 +146,10 @@ export default function LandingPage() {
 
             {/* ─── FEATURES ─── */}
             <section className="features-section" id="features">
-                <div className="section-label">Why Choose Stazy</div>
+                <div className="section-label">Why Choose HomiGo</div>
                 <h2 className="section-title">Everything you need for a perfect trip</h2>
                 <p className="section-subtitle">
-                    We've built Stazy around what travellers actually need — simplicity, safety, and spectacular stays.
+                    We've built HomiGo around what travellers actually need — simplicity, safety, and spectacular stays.
                 </p>
                 <div className="features-grid">
                     {features.map((f) => (
@@ -214,7 +214,7 @@ export default function LandingPage() {
             <section className="cta-banner">
                 <div className="cta-banner-content">
                     <h2>Ready to start your journey?</h2>
-                    <p>Join millions of travellers already discovering the world with Stazy.</p>
+                    <p>Join millions of travellers already discovering the world with HomiGo.</p>
                     <div className="cta-banner-btns">
                         <Link to="/signup" className="hero-cta-primary" id="cta-signup-btn">
                             Create Free Account
@@ -230,7 +230,7 @@ export default function LandingPage() {
             <footer className="landing-footer">
                 <div className="footer-inner">
                     <div className="footer-brand">
-                        <span className="logo-icon">✦</span> Stazy
+                        <span className="logo-icon">✦</span> HomiGo
                         <p>Your home away from home.</p>
                     </div>
                     <div className="footer-links-col">
@@ -253,7 +253,7 @@ export default function LandingPage() {
                     </div>
                 </div>
                 <div className="footer-bottom">
-                    © {new Date().getFullYear()} Stazy. All rights reserved.
+                    © {new Date().getFullYear()} HomiGo. All rights reserved.
                 </div>
             </footer>
         </div>

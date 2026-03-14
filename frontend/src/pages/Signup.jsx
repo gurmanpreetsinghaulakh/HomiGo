@@ -24,6 +24,7 @@ export default function Signup() {
             const res = await fetch('/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(formData),
             });
             const result = await res.json();
@@ -49,9 +50,9 @@ export default function Signup() {
             <div className="auth-card" id="signup-card">
                 <Link to="/" className="auth-back-link">← Back to Home</Link>
 
-                <div className="auth-logo">✦ Stazy</div>
+                <div className="auth-logo">✦ HomiGo</div>
                 <h1 className="auth-title">Create your account</h1>
-                <p className="auth-subtitle">Join millions of travellers on Stazy</p>
+                <p className="auth-subtitle">Join millions of travellers on HomiGo</p>
 
                 {error && (
                     <div className="auth-error" id="signup-error">

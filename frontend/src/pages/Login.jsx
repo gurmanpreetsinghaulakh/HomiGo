@@ -24,6 +24,7 @@ export default function Login() {
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(formData),
             });
             const result = await res.json();
@@ -56,7 +57,7 @@ export default function Login() {
             <div className="auth-card" id="login-card">
                 <Link to="/" className="auth-back-link">← Back to Home</Link>
 
-                <div className="auth-logo">✦ Stazy</div>
+                <div className="auth-logo">✦ HomiGo</div>
                 <h1 className="auth-title">Welcome back</h1>
                 <p className="auth-subtitle">Log in to continue your journey</p>
 
