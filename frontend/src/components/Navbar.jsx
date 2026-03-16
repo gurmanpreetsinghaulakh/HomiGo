@@ -42,7 +42,7 @@ export default function Navbar() {
         <nav className="navbar navbar-expand-md sticky-top">
             <div className="container-fluid sticky-top">
                 <Link className="navbar-brand" to={user?.isAdmin ? '/admin-dashboard' : user ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--stays-brand)' }}>
-                    <span style={{ fontSize: '1.25rem' }}>✦</span> <b>HomiGo</b>
+                    <span style={{ fontSize: '1.25rem' }}><i className="fa-solid fa-house" /></span> <b>HomiGo</b>
                 </Link>
                 <button className="navbar-toggler bg-body-light" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
@@ -88,7 +88,13 @@ export default function Navbar() {
                                     className="nav-link"
                                     to={user.isAdmin ? '/admin-dashboard' : '/dashboard'}
                                 >
-                                    <b>{user.isAdmin ? '🛡 Admin' : `👤 ${user.username}`}</b>
+                                    <b>
+                                        {user.isAdmin ? (
+                                            <><i className="fa-solid fa-shield-halved" /> Admin</>
+                                        ) : (
+                                            <><i className="fa-regular fa-user" /> {user.username}</>
+                                        )}
+                                    </b>
                                 </Link>
                                 <button
                                     className="nav-link btn btn-link"

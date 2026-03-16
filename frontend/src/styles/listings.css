@@ -1,15 +1,4 @@
 /* Premium Browse Stays Styling - Twinning with Dashboard */
-:root {
-    --stays-brand: #ff385c;
-    --stays-brand-hover: #ff6b83;
-    --stays-bg: #0f0f14;
-    --stays-surface: #18181f;
-    --stays-text-primary: #f5f5f7;
-    --stays-text-secondary: #7c7c8a;
-    --stays-border: rgba(255, 255, 255, 0.08);
-    --stays-transition: all 0.25s ease;
-}
-
 .browse-stays-container {
     min-height: 100vh;
     background: var(--stays-bg);
@@ -17,11 +6,10 @@
     padding: 1.5rem 2.5rem;
 }
 
-/* --- Premium Filters --- */
 .filters-wrapper {
     position: sticky;
     top: 5rem;
-    background: var(--stays-bg);
+    background: var(--stays-surface);
     z-index: 100;
     display: flex;
     align-items: center;
@@ -30,6 +18,8 @@
     border-bottom: 1px solid var(--stays-border);
     margin-bottom: 2rem;
 }
+
+/* --- Premium Filters --- */
 
 /* Back Button Styling */
 .back-dash-btn {

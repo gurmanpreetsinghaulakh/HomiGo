@@ -10,12 +10,13 @@
 :root {
   --stays-brand: #ff385c;
   --stays-brand-hover: #e31c5f;
-  --stays-text-primary: #222222;
-  --stays-text-secondary: #717171;
-  --stays-bg: #ffffff;
-  --stays-card-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --stays-text-primary: #f5f5f7;
+  --stays-text-secondary: #7c7c8a;
+  --stays-bg: #0f0f14;
+  --stays-surface: rgba(255, 255, 255, 0.04);
+  --stays-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   --stays-transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-  --stays-border: #dddddd;
+  --stays-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -23,6 +24,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: var(--stays-bg);
+  color: var(--stays-text-primary);
 }
 
 .container {

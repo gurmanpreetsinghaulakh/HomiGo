@@ -40,11 +40,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-
-
-
-
-
 async function connectWithRetry(attempt = 1) {
     if (!urldb) {
         console.error('No MongoDB URI found in environment variables.');

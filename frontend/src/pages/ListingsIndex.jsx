@@ -42,18 +42,18 @@ export default function ListingsIndex() {
     }, [searchParams]);
 
     const categories = [
-        { name: 'All', icon: '🏠' },
-        { name: 'Trending', icon: '🔥' },
-        { name: 'Rooms', icon: '🛏️' },
-        { name: 'Beach', icon: '🏖️' },
-        { name: 'Mountain', icon: '🏔️' },
-        { name: 'City', icon: '🏙️' },
-        { name: 'Heritage', icon: '🏰' },
-        { name: 'Forest', icon: '🌲' },
-        { name: 'Farm', icon: '🚜' },
-        { name: 'Desert', icon: '🏜️' },
-        { name: 'Arctic', icon: '❄️' },
-        { name: 'Pools', icon: '🏊' }
+        { name: 'All', icon: <i className="fa-solid fa-house" /> },
+        { name: 'Trending', icon: <i className="fa-solid fa-fire" /> },
+        { name: 'Rooms', icon: <i className="fa-solid fa-bed" /> },
+        { name: 'Beach', icon: <i className="fa-solid fa-umbrella-beach" /> },
+        { name: 'Mountain', icon: <i className="fa-solid fa-mountain" /> },
+        { name: 'City', icon: <i className="fa-solid fa-city" /> },
+        { name: 'Heritage', icon: <i className="fa-solid fa-landmark" /> },
+        { name: 'Forest', icon: <i className="fa-solid fa-tree" /> },
+        { name: 'Farm', icon: <i className="fa-solid fa-tractor" /> },
+        { name: 'Desert', icon: <i className="fa-solid fa-campground" /> },
+        { name: 'Arctic', icon: <i className="fa-solid fa-snowflake" /> },
+        { name: 'Pools', icon: <i className="fa-solid fa-person-swimming" /> }
     ];
 
     const getImageUrl = (listing) => {
