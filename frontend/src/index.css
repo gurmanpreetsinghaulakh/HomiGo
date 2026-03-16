@@ -41,6 +41,55 @@ body {
   border-bottom: 1px solid var(--stays-border) !important;
 }
 
+/* Search bar container should not expand beyond a reasonable width */
+.search-container {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    max-width: none;
+  }
+}
+
+/* Search suggestions dropdown (keeps search input from shifting when opened) */
+.suggestions-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--stays-surface);
+  border: 1px solid var(--stays-border);
+  border-radius: 1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions-dropdown.show {
+  display: block;
+}
+
+.suggestion-item {
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  color: var(--stays-text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .fa-compass {
   color: var(--stays-brand);
   font-size: 2rem;

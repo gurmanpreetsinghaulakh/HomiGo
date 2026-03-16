@@ -65,9 +65,9 @@ async function setupAdmin() {
     try {
         // Admin credentials can be configured via environment variables.
         // If you want to create/change the admin user, set these and restart the server.
-        const adminEmail = process.env.ADMIN_EMAIL || "ketansingla3246@gmail.com";
-        const adminUsername = process.env.ADMIN_USERNAME || "ketansingla3246";
-        const adminPassword = process.env.ADMIN_PASSWORD || "ketan@1885";
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminUsername = process.env.ADMIN_USERNAME;
+        const adminPassword = process.env.ADMIN_PASSWORD;
 
         const existingAdmin = await User.findOne({ email: adminEmail });
         if (!existingAdmin) {
