@@ -1,0 +1,300 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useGlobalModal } from '../../context/ModalContext';
+import AdminLayout from '../../components/AdminLayout';
+
+export default function NewListing() {
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        price: '',
+        location: '',
+        country: '',
+        category: 'Stay',
+    });
+    const [file, setFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const { showModal } = useGlobalModal();
+    const navigate = useNavigate();
+
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+        if (selectedFile) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(selectedFile);
+        } else {
+            setImagePreview(null);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const data = new FormData();
+        data.append('listing[title]', formData.title);
+        data.append('listing[description]', formData.description);
+        data.append('listing[price]', formData.price);
+        data.append('listing[location]', formData.location);
+        data.append('listing[country]', formData.country);
+        data.append('listing[category]', formData.category);
+        if (file) {
+            data.append('listing[Image]', file);
+        }
+
+        try {
+            const res = await fetch('/api/listings', {
+                method: 'POST',
+                body: data,
+            });
+            const result = await res.json();
+            if (result.success) {
+                navigate('/admin/listings');
+            } else {
+                showModal({
+                    title: 'Creation Failed',
+                    message: result.error || 'Something went wrong while creating the listing.',
+                    type: 'error',
+                    confirmText: 'Try Again'
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            showModal({
+                title: 'Network Error',
+                message: 'Failed to communicate with the server. Please check your connection.',
+                type: 'error',
+                confirmText: 'Understood'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDiscard = (e) => {
+        e.preventDefault();
+        showModal({
+            title: 'Discard Changes',
+            message: 'Are you sure you want to discard this new listing? All entered data will be lost.',
+            type: 'warning',
+            confirmText: 'Discard',
+            cancelText: 'Keep Editing',
+            onConfirm: () => navigate('/admin/listings')
+        });
+    };
+
+    const actions = (
+        <Link to="/admin/listings" className="settings-reset-btn" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>←</span> Back to Listings
+        </Link>
+    );
+
+    return (
+        <AdminLayout title="Add New Listing" subtitle="Create a new property listing with rich details" actions={actions}>
+            <div className="new-listing-container" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '2rem', alignItems: 'start' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                    {/* ── CORE DETAILS ── */}
+                    <div className="settings-section">
+                        <h3 className="settings-section-title">Property Details</h3>
+                        <div className="settings-fields">
+                            <div className="settings-field" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.6rem' }}>
+                                <div className="settings-field-label">
+                                    <span>Listing Title</span>
+                                    <span className="settings-hint">Make it catchy and descriptive</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <input
+                                        name="title"
+                                        placeholder="e.g. Modern Cliffside Villa with Infinity Pool"
+                                        type="text"
+                                        className="settings-input"
+                                        style={{ width: '100%' }}
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.title}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="settings-field" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.6rem' }}>
+                                <div className="settings-field-label">
+                                    <span>Detailed Description</span>
+                                    <span className="settings-hint">Tell guests what makes this place unique</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <textarea
+                                        name="description"
+                                        placeholder="Describe the area, amenities, and overall vibe..."
+                                        className="settings-input"
+                                        style={{ width: '100%', minHeight: '140px', lineHeight: '1.6' }}
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.description}
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Category</span>
+                                    <span className="settings-hint">Helps users find your listing</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <select name="category" className="settings-input" onChange={handleInputChange} value={formData.category}>
+                                        {['Stay', 'Beach', 'Mountain', 'City', 'Heritage', 'Forest', 'Farm', 'Desert'].map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── LOCATION & PRICING ── */}
+                    <div className="settings-section">
+                        <h3 className="settings-section-title">Location & Pricing</h3>
+                        <div className="settings-fields">
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Price per Night (₹)</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <div className="settings-number-wrap">
+                                        <span className="number-prefix" style={{ color: 'var(--db-brand)', fontWeight: '800' }}>₹</span>
+                                        <input
+                                            name="price"
+                                            placeholder="2500"
+                                            type="number"
+                                            min="0"
+                                            className="settings-input"
+                                            style={{ fontWeight: '700', fontSize: '1rem' }}
+                                            required
+                                            onChange={handleInputChange}
+                                            value={formData.price}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Location / City</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <input
+                                        name="location"
+                                        placeholder="Manali, Himachal Pradesh"
+                                        type="text"
+                                        className="settings-input"
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.location}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Country</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <input
+                                        name="country"
+                                        placeholder="India"
+                                        type="text"
+                                        className="settings-input"
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.country}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+                        <button onClick={handleDiscard} className="settings-reset-btn" style={{ textDecoration: 'none', border: 'none' }}>Discard</button>
+                        <button className="settings-save-btn" type="submit" disabled={loading} style={{ minWidth: '160px' }}>
+                            {loading ? 'Creating...' : '✦ Publish Listing'}
+                        </button>
+                    </div>
+                </form>
+
+                {/* ── IMAGE PREVIEW ASIDE ── */}
+                <div className="preview-aside" style={{ position: 'sticky', top: '2rem' }}>
+                    <div className="settings-section">
+                        <h3 className="settings-section-title">Media Upload</h3>
+                        <div className="modal-body" style={{ padding: '1.5rem' }}>
+                            <div
+                                className="image-upload-zone"
+                                style={{
+                                    border: '2px dashed var(--db-border)',
+                                    borderRadius: '1rem',
+                                    padding: '1rem',
+                                    textAlign: 'center',
+                                    background: 'rgba(255,255,255,0.02)',
+                                    transition: 'all 0.3s'
+                                }}
+                            >
+                                {imagePreview ? (
+                                    <div style={{ position: 'relative' }}>
+                                        <img
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            style={{ width: '100%', borderRadius: '0.6rem', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'block' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFile(null); setImagePreview(null); }}
+                                            style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >✕</button>
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '2rem 1rem' }}>
+                                        <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.8rem' }}>🖼️</span>
+                                        <p style={{ fontSize: '0.88rem', color: 'var(--db-muted)', marginBottom: '1.2rem' }}>
+                                            Choose a high-resolution image to represent this property.
+                                        </p>
+                                        <label className="tbl-btn tbl-btn-edit" style={{ cursor: 'pointer', display: 'inline-block', padding: '0.6rem 1.2rem' }}>
+                                            Select Photo
+                                            <input type="file" style={{ display: 'none' }} onChange={handleFileChange} required />
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* PREVIEW CARD MOCKUP */}
+                            <div style={{ marginTop: '2rem', opacity: 0.6 }}>
+                                <p style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--db-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.05em' }}>Card Preview</p>
+                                <div className="db-listing-card" style={{ cursor: 'default' }}>
+                                    <div className="db-listing-img-wrap">
+                                        <img
+                                            src={imagePreview || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&auto=format&fit=crop'}
+                                            className="db-listing-img"
+                                            alt="Preview"
+                                        />
+                                        <div className="db-listing-badge">{formData.category}</div>
+                                    </div>
+                                    <div className="db-listing-info">
+                                        <h3 style={{ fontSize: '0.85rem' }}>{formData.title || 'Untitled Property'}</h3>
+                                        <p style={{ fontSize: '0.75rem', marginBottom: '0.2rem' }}>{formData.location || 'Location'}, {formData.country || 'Country'}</p>
+                                        <strong>₹{Number(formData.price).toLocaleString()} <span>/ night</span></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AdminLayout>
+    );
+}

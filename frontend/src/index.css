@@ -1,0 +1,183 @@
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+:root {
+  --stays-brand: #ff385c;
+  --stays-brand-hover: #e31c5f;
+  --stays-text-primary: #f5f5f7;
+  --stays-text-secondary: #7c7c8a;
+  --stays-bg: #0f0f14;
+  --stays-surface: rgba(255, 255, 255, 0.04);
+  --stays-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --stays-transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  --stays-border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--stays-bg);
+  color: var(--stays-text-primary);
+}
+
+.container {
+  flex: 1;
+}
+
+/* Navbar */
+.navbar {
+  height: 5rem;
+  background-color: rgba(15, 15, 20, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--stays-border) !important;
+}
+
+/* Search bar container should not expand beyond a reasonable width */
+.search-container {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    max-width: none;
+  }
+}
+
+/* Search suggestions dropdown (keeps search input from shifting when opened) */
+.suggestions-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--stays-surface);
+  border: 1px solid var(--stays-border);
+  border-radius: 1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions-dropdown.show {
+  display: block;
+}
+
+.suggestion-item {
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  color: var(--stays-text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fa-compass {
+  color: var(--stays-brand);
+  font-size: 2rem;
+}
+
+.nav-link {
+  color: var(--stays-text-primary) !important;
+  transition: var(--stays-transition);
+}
+
+.nav-link:hover {
+  color: var(--stays-brand) !important;
+}
+
+.btn-search {
+  background-color: var(--stays-brand) !important;
+  color: white !important;
+  border-radius: 2rem !important;
+  padding: 0.5rem 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+.search-input {
+  background-color: var(--stays-surface) !important;
+  border: 1px solid var(--stays-border) !important;
+  color: white !important;
+  border-radius: 2rem !important;
+  padding-left: 1.5rem !important;
+}
+
+.search-input::placeholder {
+  color: var(--stays-text-secondary);
+}
+
+/* Cards */
+.listing-card {
+  border: none !important;
+  margin-bottom: 2rem;
+}
+
+.card-img-top {
+  border-radius: 1rem !important;
+  width: 100% !important;
+  object-fit: cover !important;
+}
+
+.card-body {
+  padding: 0 !important;
+}
+
+.card-text p {
+  font-weight: 400 !important;
+}
+
+.listing-link {
+  text-decoration: none;
+}
+
+.card-img-overlay {
+  opacity: 0;
+}
+
+.card-img-overlay:hover {
+  opacity: 0.2;
+  background-color: white;
+}
+
+/* Buttons */
+.add-btn {
+  background-color: #fe424d !important;
+  border: none !important;
+}
+
+.edit-btn {
+  background-color: #fe424d !important;
+  border: none !important;
+}
+
+/* Show Page */
+.show-img {
+  height: 30vh;
+}
+
+.btns {
+  display: flex;
+}
+
+/* Auth forms */
+.needs-validation label {
+  font-weight: bold;
+}
