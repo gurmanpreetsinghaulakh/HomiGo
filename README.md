@@ -69,7 +69,7 @@ Create a `.env` file in the `backend/` folder (next to `app.js`). Example:
 
 ```env
 # MongoDB / Atlas
-ALTLASDB_URL=mongodb://127.0.0.1:27017/homigo
+MONGODB_URI=mongodb://127.0.0.1:27017/homigo
 # or ATLASDB_URL=... or MONGODB_URI=...
 
 # Session secret (required for sessions/cookies)
@@ -133,7 +133,7 @@ Frontend will run on `http://localhost:5173` by default and calls the backend AP
 ## ✅ Admin Account
 
 When the backend starts, it ensures an admin user exists with the credentials from your `.env` file. 
-
+e.g.
 ADMIN_EMAIL=gurman2109@gmail.com
 ADMIN_USERNAME=gurmanpreetsingh
 ADMIN_PASSWORD=Gurman@123
