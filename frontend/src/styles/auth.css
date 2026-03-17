@@ -265,6 +265,30 @@
     border: 1px solid rgba(255, 56, 92, 0.25);
 }
 
+.auth-info {
+    background: rgba(56, 169, 255, 0.12);
+    border: 1px solid rgba(56, 169, 255, 0.25);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: rgba(145, 208, 255, 0.95);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.otp-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: rgba(149, 149, 160, 0.85);
+}
+
+.otp-timer {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
 .auth-footer-text {
     font-size: 0.88rem;
     color: rgba(149, 149, 160, 0.8);

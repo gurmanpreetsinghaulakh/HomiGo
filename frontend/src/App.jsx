@@ -7,6 +7,7 @@ import GlobalModal from './components/GlobalModal';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import SignupVerify from './pages/SignupVerify';
 import UserDashboard from './pages/UserDashboard';
 import UserWishlist from './pages/UserWishlist';
 import UserBookings from './pages/UserBookings';
@@ -33,7 +34,7 @@ function AppRoutes() {
   // Paths that should not show the standard Bootstrap navbar
   const isAdminRoute = location.pathname === '/admin-dashboard' || location.pathname.startsWith('/admin/');
   const isUserRoute = location.pathname === '/dashboard' || location.pathname.startsWith('/user/');
-  const isBare = ['/', '/login', '/signup'].includes(location.pathname) || isAdminRoute || isUserRoute;
+  const isBare = ['/', '/login', '/signup', '/signup/verify'].includes(location.pathname) || isAdminRoute || isUserRoute;
   const showNavbar = !isBare;
 
   // Helpers: guards
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/signup/verify" element={<SignupVerify />} />
 
         {/* ── USER DASHBOARD ── */}
         <Route path="/dashboard" element={userGuard(<UserDashboard />)} />

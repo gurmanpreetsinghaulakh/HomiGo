@@ -49,7 +49,7 @@ A full-stack property listing & booking application with a **Node.js + Express +
 
 The backend uses **MongoDB**. By default it connects to:
 
-- `mongodb://127.0.0.1:27017/wanderlust` (local MongoDB)
+- `mongodb://127.0.0.1:27017/homigo` (local MongoDB)
 
 You may override this using one of these environment variables:
 
@@ -59,7 +59,7 @@ You may override this using one of these environment variables:
 - `MONGO_URL`
 - `MONGODB_URL`
 
-> ⚠️ The default database name is `wanderlust` unless you override the connection string.
+> ⚠️ The default database name is `homigo` unless you override the connection string.
 
 ---
 
@@ -69,7 +69,7 @@ Create a `.env` file in the `backend/` folder (next to `app.js`). Example:
 
 ```env
 # MongoDB / Atlas
-ALTLASDB_URL=mongodb://127.0.0.1:27017/wanderlust
+ALTLASDB_URL=mongodb://127.0.0.1:27017/homigo
 # or ATLASDB_URL=... or MONGODB_URI=...
 
 # Session secret (required for sessions/cookies)
@@ -132,12 +132,8 @@ Frontend will run on `http://localhost:5173` by default and calls the backend AP
 
 ## ✅ Admin Account
 
-When the backend starts, it ensures an admin user exists with the credentials from your `.env` file. If not set, defaults are:
+When the backend starts, it ensures an admin user exists with the credentials from your `.env` file. 
 
-- Email: `ketansingla3246@gmail.com`
-- Username: `ketansingla3246`
-- Password: `ketan@1885`
-e.g.::::::::
 ADMIN_EMAIL=gurman2109@gmail.com
 ADMIN_USERNAME=gurmanpreetsingh
 ADMIN_PASSWORD=Gurman@123

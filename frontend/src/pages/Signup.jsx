@@ -29,8 +29,7 @@ export default function Signup() {
             });
             const result = await res.json();
             if (result.success) {
-                if (result.user) login(result.user);
-                navigate('/dashboard');
+                navigate('/signup/verify');
             } else {
                 setError(result.error || 'Signup failed. Please try again.');
             }
