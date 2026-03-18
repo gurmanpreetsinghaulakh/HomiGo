@@ -26,6 +26,8 @@ import ListingsIndex from './pages/ListingsIndex';
 import ShowListing from './pages/ShowListing';
 import NewListing from './pages/admin/NewListing';
 import EditListing from './pages/admin/EditListing';
+import PaymentPage from './pages/PaymentPage';
+import BookingConfirmation from './pages/BookingConfirmation';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -34,7 +36,8 @@ function AppRoutes() {
   // Paths that should not show the standard Bootstrap navbar
   const isAdminRoute = location.pathname === '/admin-dashboard' || location.pathname.startsWith('/admin/');
   const isUserRoute = location.pathname === '/dashboard' || location.pathname.startsWith('/user/');
-  const isBare = ['/', '/login', '/signup', '/signup/verify'].includes(location.pathname) || isAdminRoute || isUserRoute;
+  const isBare = ['/', '/login', '/signup', '/signup/verify', '/confirmation'].includes(location.pathname) || 
+                location.pathname.startsWith('/payment/') || isAdminRoute || isUserRoute;
   const showNavbar = !isBare;
 
   // Helpers: guards
@@ -96,6 +99,10 @@ function AppRoutes() {
 
         {/* ── USER-ONLY LISTING DETAIL ── */}
         <Route path="/listings/:id" element={userGuard(<ShowListing />)} />
+
+        {/* ── PAYMENT & CONFIRMATION ── */}
+        <Route path="/payment/:id" element={userGuard(<PaymentPage />)} />
+        <Route path="/confirmation" element={userGuard(<BookingConfirmation />)} />
 
         {/* ── FALLBACK ── */}
         <Route path="*" element={<Navigate to="/" replace />} />

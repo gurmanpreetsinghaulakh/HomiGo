@@ -11,6 +11,7 @@ export default function ShowListing() {
     const navigate = useNavigate();
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [nights, setNights] = useState(1);
 
     useEffect(() => {
         setLoading(true);
@@ -87,13 +88,26 @@ export default function ShowListing() {
                 </div>
             </header>
 
-            {/* Main Image */}
-            <div className="show-image-hero">
-                <img
-                    src={listing.Image?.url || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&auto=format&fit=crop'}
-                    className="show-hero-img"
-                    alt={listing.title}
-                />
+            {/* Dynamic Gallery */}
+            <div className={`show-gallery-container ${listing.images?.length > 1 ? 'is-grid' : 'is-single'}`}>
+                {listing.images && listing.images.length > 0 ? (
+                    listing.images.map((img, idx) => (
+                        <div 
+                            key={idx} 
+                            className={`gallery-item item-${idx}`}
+                        >
+                            <img src={img.url} alt={`${listing.title} - view ${idx + 1}`} className="gallery-img" />
+                        </div>
+                    ))
+                ) : (
+                    <div className="gallery-item item-0">
+                        <img 
+                            src={listing.Image?.url || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&auto=format&fit=crop'} 
+                            alt={listing.title} 
+                            className="gallery-img" 
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Main Content Grid */}
@@ -137,38 +151,77 @@ export default function ShowListing() {
                         </div>
                     </div>
 
-                    <button className="book-btn-primary" onClick={() => {
-                        if (!user) {
-                            navigate('/login');
-                        } else {
-                            // Booking logic would go here
-                            showModal({
-                                title: 'Booking Request',
-                                message: 'Booking functionality is currently being implemented. Check back soon!',
-                                type: 'info',
-                                confirmText: 'Got it'
-                            });
-                        }
-                    }}>
-                        Check Availability
-                    </button>
+                    {(!user || !user.isAdmin) ? (
+                        <>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ fontSize: '0.8rem', color: 'var(--db-muted)', display: 'block', marginBottom: '0.4rem' }}>Stay Duration (Nights)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', border: '1px solid var(--db-border)', padding: '0.4rem 0.8rem' }}>
+                                    <button 
+                                        onClick={() => setNights(prev => Math.max(1, prev - 1))}
+                                        style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.5rem', fontSize: '1.2rem' }}
+                                    >-</button>
+                                    <input 
+                                        type="number" 
+                                        value={nights}
+                                        onChange={(e) => setNights(Math.max(1, parseInt(e.target.value) || 1))}
+                                        style={{ flex: 1, background: 'none', border: 'none', color: 'white', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', width: '40px' }}
+                                    />
+                                    <button 
+                                        onClick={() => setNights(prev => prev + 1)}
+                                        style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.5rem', fontSize: '1.2rem' }}
+                                    >+</button>
+                                </div>
+                            </div>
 
-                    <div className="booking-footer">
-                        <p className="booking-note">You won't be charged yet</p>
+                            <div style={{ marginTop: '0.5rem', marginBottom: '1rem', padding: '0.8rem', background: listing.availableRooms > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '0.5rem', border: `1px solid ${listing.availableRooms > 0 ? '#10b981' : '#ef4444'}` }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: listing.availableRooms > 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
+                                    <span>{listing.availableRooms > 0 ? '✅' : '❌'}</span>
+                                    <span>{listing.availableRooms > 0 ? `${listing.availableRooms} Room${listing.availableRooms > 1 ? 's' : ''} Available` : 'Sold Out'}</span>
+                                </div>
+                            </div>
 
-                        <div className="booking-calc-row">
-                            <span style={{ textDecoration: 'underline' }}>₹{listing.price?.toLocaleString()} x 5 nights</span>
-                            <span>₹{(listing.price * 5).toLocaleString()}</span>
+                            <button className="book-btn-primary" disabled={listing.availableRooms <= 0} style={{ opacity: listing.availableRooms <= 0 ? 0.5 : 1, cursor: listing.availableRooms <= 0 ? 'not-allowed' : 'pointer' }} onClick={() => {
+                                if (!user) {
+                                    navigate('/login');
+                                } else {
+                                    const totalCost = listing.price * nights + Math.round(listing.price * 0.01);
+                                    navigate(`/payment/${id}`, { 
+                                        state: { 
+                                            listing, 
+                                            nights, 
+                                            totalCost 
+                                        } 
+                                    });
+                                }
+                            }}>
+                                {listing.availableRooms > 0 ? "Book Room" : "No Rooms Available"}
+                            </button>
+
+                            <div className="booking-footer">
+                                <p className="booking-note">You won't be charged yet</p>
+
+                                <div className="booking-calc-row">
+                                    <span style={{ textDecoration: 'underline' }}>₹{listing.price?.toLocaleString()} x {nights} night{nights > 1 ? 's' : ''}</span>
+                                    <span>₹{(listing.price * nights).toLocaleString()}</span>
+                                </div>
+                                <div className="booking-calc-row">
+                                    <span style={{ textDecoration: 'underline' }}>Cleaning fee</span>
+                                    <span>₹{Math.round(listing.price * 0.01).toLocaleString()}</span>
+                                </div>
+                                <div className="booking-calc-row total">
+                                    <span>Total cost</span>
+                                    <span>₹{(listing.price * nights + Math.round(listing.price * 0.01)).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.8rem', border: '1px solid var(--db-border)', textAlign: 'center' }}>
+                            <div style={{ fontSize: '2rem', marginBottom: '0.8rem' }}>🛡️</div>
+                            <h4 style={{ fontSize: '0.95rem', fontWeight: '700', marginBottom: '0.4rem' }}>Admin View</h4>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--db-muted)', marginBottom: '1.2rem' }}>You are viewing this property as an administrator. Booking is disabled for admin accounts.</p>
+                            <Link to="/admin-dashboard" className="tbl-btn tbl-btn-view" style={{ display: 'block', textDecoration: 'none' }}>Back to Dashboard</Link>
                         </div>
-                        <div className="booking-calc-row">
-                            <span style={{ textDecoration: 'underline' }}>Cleaning fee</span>
-                            <span>₹{Math.round(listing.price * 0.1).toLocaleString()}</span>
-                        </div>
-                        <div className="booking-calc-row total">
-                            <span>Total cost</span>
-                            <span>₹{Math.round(listing.price * 5.1).toLocaleString()}</span>
-                        </div>
-                    </div>
+                    )}
                 </aside>
             </div>
         </div>

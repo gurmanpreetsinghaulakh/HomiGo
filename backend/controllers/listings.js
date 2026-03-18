@@ -1,4 +1,5 @@
 const listing = require("../models/listing");
+const Booking = require("../models/booking");
 
 
 
@@ -129,18 +130,24 @@ module.exports.showlisting = async (req, res) => {
 };
 
 module.exports.createroute = async (req, res, next) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, error: "Image is required" });
-  }
-
-  const filename = req.file.filename;
-  const url = req.file.path && req.file.path.startsWith('http')
-    ? req.file.path
-    : `/uploads/${filename}`;
-
   const newlisting = new listing(req.body.listing);
   newlisting.owner = req.user._id;
-  newlisting.Image = { url, filename };
+
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = req.files.map(f => ({
+      url: f.path && f.path.startsWith('http') ? f.path : `/uploads/${f.filename}`,
+      filename: f.filename
+    }));
+    newlisting.Image = uploadedImages[0];
+    newlisting.images = uploadedImages;
+  } else if (req.file) {
+    const filename = req.file.filename;
+    const url = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/${filename}`;
+    newlisting.Image = { url, filename };
+    newlisting.images = [{ url, filename }];
+  } else {
+    return res.status(400).json({ success: false, error: "At least 1 image is required" });
+  }
 
   // Set default geometry since it's required by the model
   newlisting.geometry = {
@@ -170,17 +177,36 @@ module.exports.renderEditroute = async (req, res) => {
 
 module.exports.updateroute = async (req, res) => {
   let { id } = req.params;
-  let Listing = await listing.findByIdAndUpdate(id, { ...req.body.listing });
-  if (typeof (req.file) !== "undefined") {
-    const filename = req.file.filename;
-    const url = req.file.path && req.file.path.startsWith('http')
-      ? req.file.path
-      : `/uploads/${filename}`;
+  
+  // Update the basic fields first and get the refreshed document
+  let Listing = await listing.findByIdAndUpdate(id, { ...req.body.listing }, { new: true, runValidators: true });
+  
+  if (!Listing) {
+    return res.status(404).json({ success: false, error: "Listing not found" });
+  }
 
+  // Handle multiple file uploads if present
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = req.files.map(f => ({
+      url: f.path && f.path.startsWith('http') ? f.path : `/uploads/${f.filename}`,
+      filename: f.filename
+    }));
+    
+    Listing.Image = uploadedImages[0];
+    Listing.images = uploadedImages;
+    await Listing.save();
+  } 
+  // Handle single file upload if present (though route mostly uses .array now)
+  else if (req.file) {
+    const filename = req.file.filename;
+    const url = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/${filename}`;
+    
     Listing.Image = { url, filename };
+    Listing.images = [{ url, filename }];
     await Listing.save();
   }
-  res.json({ success: true, message: "Listing Updated !!!", listing: Listing });
+
+  res.json({ success: true, message: "Listing Updated Successfully!", listing: Listing });
 };
 
 module.exports.deleteroute = async (req, res) => {
@@ -189,4 +215,65 @@ module.exports.deleteroute = async (req, res) => {
   let deleted = await listing.findByIdAndDelete(id);
   console.log(deleted);
   res.json({ success: true, message: "Listing Deleted !!!", deleted });
+};
+
+module.exports.bookListing = async (req, res) => {
+  let { id } = req.params;
+  const { nights, amount } = req.body;
+  const listingToBook = await listing.findById(id);
+  
+  if (!listingToBook) {
+    return res.status(404).json({ success: false, error: "Listing not found" });
+  }
+
+  if (listingToBook.availableRooms <= 0) {
+    return res.status(400).json({ success: false, error: "No rooms available" });
+  }
+
+  // Record the booking
+  const newBooking = new Booking({
+    listing: listingToBook._id,
+    user: req.user._id,
+    nights: nights || 1,
+    amount: amount || (listingToBook.price * (nights || 1)),
+    status: 'pending'
+  });
+
+  await newBooking.save();
+
+  // Decrement room availability
+  listingToBook.availableRooms -= 1;
+  await listingToBook.save();
+
+  res.json({ success: true, message: "Booking successful", availableRooms: listingToBook.availableRooms, booking: newBooking });
+};
+
+module.exports.getMyBookings = async (req, res) => {
+  const bookings = await Booking.find({ user: req.user._id })
+    .populate('listing')
+    .sort({ createdAt: -1 });
+  
+  res.json({ success: true, bookings });
+};
+
+module.exports.getAllBookings = async (req, res) => {
+  const bookings = await Booking.find({})
+    .populate('listing')
+    .populate('user')
+    .sort({ createdAt: -1 });
+  
+  res.json({ success: true, bookings });
+};
+
+module.exports.updateBookingStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  
+  const updatedBooking = await Booking.findByIdAndUpdate(id, { status }, { new: true });
+  
+  if (!updatedBooking) {
+    return res.status(404).json({ success: false, error: "Booking not found" });
+  }
+  
+  res.json({ success: true, booking: updatedBooking });
 };

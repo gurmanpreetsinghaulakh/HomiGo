@@ -10,7 +10,7 @@ const upload = multer({ storage });
 
 router.route("/")
     .get(wrapAsync(listingcontroller.index))
-    .post(isLoggedIn, isAdmin, upload.single('listing[Image]'), validateListing, wrapAsync(listingcontroller.createroute));
+    .post(isLoggedIn, isAdmin, upload.array('listing[Image]', 3), validateListing, wrapAsync(listingcontroller.createroute));
 
 //search route
 router.get("/search", wrapAsync(listingcontroller.searchListings));
@@ -25,10 +25,18 @@ router.get("/filter", isLoggedIn, wrapAsync(listingcontroller.filterListings));
 router.get("/new", isLoggedIn, isAdmin, listingcontroller.rendernewform);
 
 
+// Admin Booking Routes
+router.get("/admin/bookings", isLoggedIn, isAdmin, wrapAsync(listingcontroller.getAllBookings));
+router.patch("/admin/bookings/:id", isLoggedIn, isAdmin, wrapAsync(listingcontroller.updateBookingStatus));
+
+
 router.route("/:id")
     .get(isLoggedIn, wrapAsync(listingcontroller.showlisting))
-    .put(isLoggedIn, isAdmin, isOwner, upload.single('listing[Image]'), validateListing, wrapAsync(listingcontroller.updateroute))
+    .put(isLoggedIn, isAdmin, isOwner, upload.array('listing[Image]', 3), validateListing, wrapAsync(listingcontroller.updateroute))
     .delete(isLoggedIn, isAdmin, isOwner, wrapAsync(listingcontroller.deleteroute));
+
+// book route
+router.post("/:id/book", isLoggedIn, wrapAsync(listingcontroller.bookListing));
 
 
 //edit route

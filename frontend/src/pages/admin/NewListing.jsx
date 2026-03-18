@@ -11,9 +11,13 @@ export default function NewListing() {
         location: '',
         country: '',
         category: 'Stay',
+        roomType: 'Single Room',
+        customRoomType: '',
+        totalRooms: 1,
+        availableRooms: 1,
     });
-    const [file, setFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [files, setFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
     const [loading, setLoading] = useState(false);
     const { showModal } = useGlobalModal();
     const navigate = useNavigate();
@@ -23,21 +27,49 @@ export default function NewListing() {
     };
 
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        if (selectedFile) {
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length > 3) {
+            showModal({
+                title: 'Too Many Images',
+                message: 'You can only upload a maximum of 3 images.',
+                type: 'error',
+                confirmText: 'Understood'
+            });
+            return;
+        }
+
+        setFiles(selectedFiles);
+        const newPreviews = [];
+        
+        selectedFiles.forEach(file => {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result);
+                newPreviews.push(reader.result);
+                if (newPreviews.length === selectedFiles.length) {
+                    setImagePreviews([...newPreviews]);
+                }
             };
-            reader.readAsDataURL(selectedFile);
-        } else {
-            setImagePreview(null);
+            reader.readAsDataURL(file);
+        });
+        
+        if (selectedFiles.length === 0) {
+            setImagePreviews([]);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (files.length === 0 || files.length > 3) {
+            showModal({
+                title: 'Image Required',
+                message: 'Please select between 1 and 3 images for the listing.',
+                type: 'error',
+                confirmText: 'Understood'
+            });
+            return;
+        }
+
         setLoading(true);
         const data = new FormData();
         data.append('listing[title]', formData.title);
@@ -46,8 +78,15 @@ export default function NewListing() {
         data.append('listing[location]', formData.location);
         data.append('listing[country]', formData.country);
         data.append('listing[category]', formData.category);
-        if (file) {
-            data.append('listing[Image]', file);
+        
+        const finalRoomType = formData.roomType === 'Other' ? formData.customRoomType : formData.roomType;
+        data.append('listing[roomType]', finalRoomType);
+        data.append('listing[totalRooms]', formData.totalRooms);
+        data.append('listing[availableRooms]', formData.availableRooms);
+        if (files && files.length > 0) {
+            files.forEach(file => {
+                data.append('listing[Image]', file);
+            });
         }
 
         try {
@@ -136,7 +175,6 @@ export default function NewListing() {
                                         placeholder="Describe the area, amenities, and overall vibe..."
                                         className="settings-input"
                                         style={{ width: '100%', minHeight: '140px', lineHeight: '1.6' }}
-                                        required
                                         onChange={handleInputChange}
                                         value={formData.description}
                                     ></textarea>
@@ -154,6 +192,71 @@ export default function NewListing() {
                                             <option key={c} value={c}>{c}</option>
                                         ))}
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── ROOM DETAILS ── */}
+                    <div className="settings-section">
+                        <h3 className="settings-section-title">Room Details</h3>
+                        <div className="settings-fields">
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Type of Room</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <select name="roomType" className="settings-input" onChange={handleInputChange} value={formData.roomType}>
+                                        {['Single Room', 'Double Room', 'Suite', 'Family Room', 'Studio', 'Dormitory', 'Other'].map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
+                                    {formData.roomType === 'Other' && (
+                                        <input
+                                            name="customRoomType"
+                                            placeholder="Specify the type of room"
+                                            type="text"
+                                            className="settings-input"
+                                            style={{ marginTop: '0.8rem' }}
+                                            required
+                                            onChange={handleInputChange}
+                                            value={formData.customRoomType}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Total Rooms</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <input
+                                        name="totalRooms"
+                                        type="number"
+                                        min="1"
+                                        className="settings-input"
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.totalRooms}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="settings-field">
+                                <div className="settings-field-label">
+                                    <span>Available Rooms</span>
+                                </div>
+                                <div className="settings-field-control">
+                                    <input
+                                        name="availableRooms"
+                                        type="number"
+                                        min="0"
+                                        className="settings-input"
+                                        required
+                                        onChange={handleInputChange}
+                                        value={formData.availableRooms}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -245,28 +348,52 @@ export default function NewListing() {
                                     transition: 'all 0.3s'
                                 }}
                             >
-                                {imagePreview ? (
-                                    <div style={{ position: 'relative' }}>
-                                        <img
-                                            src={imagePreview}
-                                            alt="Preview"
-                                            style={{ width: '100%', borderRadius: '0.6rem', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'block' }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => { setFile(null); setImagePreview(null); }}
-                                            style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        >✕</button>
+                                {imagePreviews.length > 0 ? (
+                                    <div style={{ display: 'grid', gap: '1rem' }}>
+                                        {imagePreviews.map((preview, index) => (
+                                            <div key={index} style={{ position: 'relative' }}>
+                                                <img
+                                                    src={preview}
+                                                    alt={`Preview ${index + 1}`}
+                                                    style={{ width: '100%', borderRadius: '0.6rem', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'block' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newFiles = [...files];
+                                                        newFiles.splice(index, 1);
+                                                        setFiles(newFiles);
+                                                        const newPreviews = [...imagePreviews];
+                                                        newPreviews.splice(index, 1);
+                                                        setImagePreviews(newPreviews);
+                                                    }}
+                                                    style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >✕</button>
+                                            </div>
+                                        ))}
+                                        {files.length < 3 && (
+                                            <label className="tbl-btn tbl-btn-edit" style={{ cursor: 'pointer', display: 'inline-block', padding: '0.6rem 1.2rem', marginTop: '1rem' }}>
+                                                Add Another Photo
+                                                <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                                                    const selected = Array.from(e.target.files);
+                                                    if (files.length + selected.length > 3) {
+                                                        showModal({ title: 'Too Many Images', message: 'Maximum 3 images allowed.', type: 'error', confirmText: 'Ok' });
+                                                        return;
+                                                    }
+                                                    handleFileChange({ target: { files: [...files, ...selected] } });
+                                                }} />
+                                            </label>
+                                        )}
                                     </div>
                                 ) : (
                                     <div style={{ padding: '2rem 1rem' }}>
                                         <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.8rem' }}>🖼️</span>
                                         <p style={{ fontSize: '0.88rem', color: 'var(--db-muted)', marginBottom: '1.2rem' }}>
-                                            Choose a high-resolution image to represent this property.
+                                            Choose up to 3 high-resolution images to represent this property.
                                         </p>
                                         <label className="tbl-btn tbl-btn-edit" style={{ cursor: 'pointer', display: 'inline-block', padding: '0.6rem 1.2rem' }}>
-                                            Select Photo
-                                            <input type="file" style={{ display: 'none' }} onChange={handleFileChange} required />
+                                            Select Photos
+                                            <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} required />
                                         </label>
                                     </div>
                                 )}
@@ -278,7 +405,7 @@ export default function NewListing() {
                                 <div className="db-listing-card" style={{ cursor: 'default' }}>
                                     <div className="db-listing-img-wrap">
                                         <img
-                                            src={imagePreview || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&auto=format&fit=crop'}
+                                            src={imagePreviews[0] || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&auto=format&fit=crop'}
                                             className="db-listing-img"
                                             alt="Preview"
                                         />

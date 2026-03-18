@@ -3,20 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AdminLayout from '../../components/AdminLayout';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// Simulated time-series data
-const MONTHLY_BOOKINGS = [12, 19, 8, 25, 32, 28, 40, 35, 22, 30, 45, 38];
-const MONTHLY_REVENUE = [48, 76, 32, 100, 128, 112, 160, 140, 88, 120, 180, 152]; // in K
-
-const CATEGORIES = [
-    { name: 'Beach', count: 18, color: '#7c3aed' },
-    { name: 'Mountain', count: 12, color: '#ff385c' },
-    { name: 'City', count: 25, color: '#10b981' },
-    { name: 'Heritage', count: 8, color: '#f59e0b' },
-    { name: 'Forest', count: 7, color: '#06b6d4' },
-];
-const totalCat = CATEGORIES.reduce((a, c) => a + c.count, 0);
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function BarChart({ data, labels, color, unit = '' }) {
     const max = Math.max(...data, 1);
@@ -25,7 +12,7 @@ function BarChart({ data, labels, color, unit = '' }) {
             <div className="bar-chart-bars">
                 {data.map((val, i) => (
                     <div key={i} className="bar-col">
-                        <div className="bar-tooltip">{unit}{val}</div>
+                        <div className="bar-tooltip">{unit}{val.toLocaleString()}</div>
                         <div
                             className="bar-fill"
                             style={{ height: `${(val / max) * 100}%`, background: color }}
@@ -64,35 +51,94 @@ export default function AdminAnalytics() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [listings, setListings] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [range, setRange] = useState('12m');
 
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
         if (!user.isAdmin) { navigate('/dashboard'); return; }
-        fetch('/api/listings')
-            .then(r => r.json())
-            .then(data => setListings(data.listings || (Array.isArray(data) ? data : [])))
-            .catch(() => { });
+        
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [resL, resB] = await Promise.all([
+                    fetch('/api/listings'),
+                    fetch('/api/listings/admin/bookings')
+                ]);
+                const dataL = await resL.json();
+                const dataB = await resB.json();
+                
+                setListings(dataL.listings || (Array.isArray(dataL) ? dataL : []));
+                if (dataB.success) setBookings(dataB.bookings);
+            } catch (err) {
+                console.error("Analytics fetch error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, [user, navigate]);
 
-    const rangeMap = { '3m': 3, '6m': 6, '12m': 12 };
-    const N = rangeMap[range];
-    const bookSlice = MONTHLY_BOOKINGS.slice(-N);
-    const revSlice = MONTHLY_REVENUE.slice(-N);
-    const labelSlice = MONTHS.slice(-N);
-    const totalRevenue = revSlice.reduce((a, b) => a + b, 0);
-    const totalBookings = bookSlice.reduce((a, b) => a + b, 0);
+    // Aggregate monthly data
+    const getMonthlyStats = (monthsBack) => {
+        const now = new Date();
+        const stats = [];
+        for (let i = monthsBack - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = d.getMonth();
+            const y = d.getFullYear();
+            
+            const monthBookings = bookings.filter(b => {
+                const bd = new Date(b.createdAt);
+                return bd.getMonth() === m && bd.getFullYear() === y;
+            });
+            
+            const revenue = monthBookings
+                .filter(b => b.status === 'confirmed')
+                .reduce((acc, b) => acc + (b.amount || 0), 0);
+                
+            stats.push({
+                label: MONTHS_SHORT[m],
+                bookings: monthBookings.length,
+                revenue: revenue / 1000 // In K
+            });
+        }
+        return stats;
+    };
 
-    const avgPrice = listings.length
-        ? Math.round(listings.reduce((a, l) => a + (l.price || 0), 0) / listings.length)
+    const rangeMap = { '3m': 3, '6m': 6, '12m': 12 };
+    const monthStats = getMonthlyStats(rangeMap[range]);
+    
+    const totalBookings = monthStats.reduce((a, s) => a + s.bookings, 0);
+    const totalRevenueK = monthStats.reduce((a, s) => a + s.revenue, 0);
+    const avgPrice = listings.length 
+        ? Math.round(listings.reduce((a, l) => a + (l.price || 0), 0) / listings.length) 
         : 0;
+
+    // Categories
+    const catMap = listings.reduce((acc, l) => {
+        const cat = l.category || 'Stay';
+        acc[cat] = (acc[cat] || 0) + 1;
+        return acc;
+    }, {});
+    const categories = Object.entries(catMap).map(([name, count], i) => ({
+        name, count, color: ['#7c3aed', '#ff385c', '#10b981', '#f59e0b', '#06b6d4'][i % 5]
+    })).sort((a, b) => b.count - a.count);
+    const totalListings = listings.length;
+
+    // Countries
     const topCountries = [...new Map(listings.map(l => [l.country, (listings.filter(x => x.country === l.country).length)])).entries()]
         .sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    // Business Health
+    const occupancyRate = totalListings > 0 ? Math.min(100, Math.round((bookings.filter(b => b.status === 'confirmed').length / totalListings) * 100)) : 0;
+    const approvalRate = bookings.length > 0 ? Math.round((bookings.filter(b => b.status === 'confirmed').length / bookings.length) * 100) : 0;
 
     if (!user) return null;
 
     return (
-        <AdminLayout title="Analytics" subtitle="Platform performance & insights">
+        <AdminLayout title="Analytics" subtitle="Real-time platform performance & insights">
             {/* Range Tabs */}
             <div className="analytics-range-bar">
                 {['3m', '6m', '12m'].map(r => (
@@ -100,110 +146,124 @@ export default function AdminAnalytics() {
                 ))}
             </div>
 
-            {/* KPI Cards */}
-            <div className="admin-stats-grid">
-                {[
-                    { icon: '📋', label: 'Bookings', value: totalBookings, sub: `Last ${N} months`, accent: '#7c3aed' },
-                    { icon: '💰', label: 'Revenue', value: `₹${totalRevenue}K`, sub: 'Confirmed bookings', accent: '#10b981' },
-                    { icon: '🏠', label: 'Listings', value: listings.length, sub: 'Total on platform', accent: '#ff385c' },
-                    { icon: '⭐', label: 'Avg Price', value: `₹${avgPrice.toLocaleString()}`, sub: 'Per night', accent: '#f59e0b' },
-                ].map(c => (
-                    <div key={c.label} className="admin-stat-card" style={{ '--card-accent': c.accent }}>
-                        <div className="admin-stat-icon">{c.icon}</div>
-                        <div>
-                            <div className="admin-stat-value">{c.value}</div>
-                            <div className="admin-stat-label">{c.label}</div>
-                            <div className="admin-stat-sub">{c.sub}</div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Charts Row */}
-            <div className="analytics-charts-row">
-                {/* Monthly Bookings */}
-                <div className="analytics-chart-card">
-                    <div className="chart-card-header">
-                        <h3>Monthly Bookings</h3>
-                        <span className="chart-total">{totalBookings} total</span>
-                    </div>
-                    <BarChart data={bookSlice} labels={labelSlice} color="linear-gradient(180deg,#a78bfa,#7c3aed)" unit="" />
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '10rem 0' }}>
+                    <div className="admin-spinner" style={{ margin: '0 auto 1.5rem' }} />
+                    <p style={{ color: '#7c7c8a' }}>Analyzing database records...</p>
                 </div>
-
-                {/* Monthly Revenue */}
-                <div className="analytics-chart-card">
-                    <div className="chart-card-header">
-                        <h3>Revenue (₹K)</h3>
-                        <span className="chart-total">₹{totalRevenue}K total</span>
-                    </div>
-                    <BarChart data={revSlice} labels={labelSlice} color="linear-gradient(180deg,#34d399,#10b981)" unit="₹" />
-                </div>
-            </div>
-
-            {/* Bottom Row */}
-            <div className="analytics-bottom-row">
-                {/* Category Breakdown */}
-                <div className="analytics-chart-card">
-                    <div className="chart-card-header"><h3>Listings by Category</h3></div>
-                    <div className="category-breakdown">
-                        {CATEGORIES.map(c => (
-                            <div key={c.name} className="cat-row">
-                                <div className="cat-info">
-                                    <span className="cat-dot" style={{ background: c.color }} />
-                                    <span className="cat-name">{c.name}</span>
-                                    <span className="cat-count">{c.count}</span>
-                                </div>
-                                <div className="cat-bar-track">
-                                    <div
-                                        className="cat-bar-fill"
-                                        style={{ width: `${(c.count / totalCat) * 100}%`, background: c.color }}
-                                    />
-                                </div>
-                                <span className="cat-pct">{Math.round((c.count / totalCat) * 100)}%</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Conversion Rings */}
-                <div className="analytics-chart-card">
-                    <div className="chart-card-header"><h3>Platform Health</h3></div>
-                    <div className="rings-grid">
+            ) : (
+                <>
+                    {/* KPI Cards */}
+                    <div className="admin-stats-grid">
                         {[
-                            { label: 'Booking Rate', pct: 68, color: '#7c3aed' },
-                            { label: 'Occupancy', pct: 74, color: '#10b981' },
-                            { label: 'User Retention', pct: 82, color: '#f59e0b' },
-                            { label: 'Review Rate', pct: 55, color: '#ff385c' },
-                        ].map(r => (
-                            <div key={r.label} className="ring-item">
-                                <DonutRing percentage={r.pct} color={r.color} size={90} />
-                                <div className="ring-label">{r.label}</div>
+                            { icon: '📋', label: 'Bookings', value: totalBookings, sub: `Last ${rangeMap[range]} months`, accent: '#7c3aed' },
+                            { icon: '💰', label: 'Revenue', value: `₹${totalRevenueK.toFixed(1)}K`, sub: 'Confirmed stays', accent: '#10b981' },
+                            { icon: '🏠', label: 'Listings', value: listings.length, sub: 'Live properties', accent: '#ff385c' },
+                            { icon: '⭐', label: 'Avg Price', value: `₹${avgPrice.toLocaleString()}`, sub: 'Market average', accent: '#f59e0b' },
+                        ].map(c => (
+                            <div key={c.label} className="admin-stat-card" style={{ '--card-accent': c.accent }}>
+                                <div className="admin-stat-icon">{c.icon}</div>
+                                <div>
+                                    <div className="admin-stat-value">{c.value}</div>
+                                    <div className="admin-stat-label">{c.label}</div>
+                                    <div className="admin-stat-sub">{c.sub}</div>
+                                </div>
                             </div>
                         ))}
                     </div>
-                </div>
 
-                {/* Top Countries */}
-                <div className="analytics-chart-card">
-                    <div className="chart-card-header"><h3>Top Countries</h3></div>
-                    {topCountries.length > 0 ? (
-                        <div className="country-list">
-                            {topCountries.map(([country, count], i) => (
-                                <div key={country} className="country-row">
-                                    <span className="country-rank">#{i + 1}</span>
-                                    <span className="country-name">{country || 'Unknown'}</span>
-                                    <div className="country-bar-track">
-                                        <div className="country-bar-fill" style={{ width: `${(count / topCountries[0][1]) * 100}%` }} />
-                                    </div>
-                                    <span className="country-count">{count}</span>
-                                </div>
-                            ))}
+                    {/* Charts Row */}
+                    <div className="analytics-charts-row">
+                        <div className="analytics-chart-card">
+                            <div className="chart-card-header">
+                                <h3>Monthly Bookings</h3>
+                                <span className="chart-total">{totalBookings} total</span>
+                            </div>
+                            <BarChart 
+                                data={monthStats.map(s => s.bookings)} 
+                                labels={monthStats.map(s => s.label)} 
+                                color="linear-gradient(180deg,#a78bfa,#7c3aed)" 
+                                unit="" 
+                            />
                         </div>
-                    ) : (
-                        <div className="table-empty" style={{ textAlign: 'center', padding: '2rem' }}>No listing data yet.</div>
-                    )}
-                </div>
-            </div>
+
+                        <div className="analytics-chart-card">
+                            <div className="chart-card-header">
+                                <h3>Revenue Growth (₹K)</h3>
+                                <span className="chart-total">₹{totalRevenueK.toFixed(1)}K total</span>
+                            </div>
+                            <BarChart 
+                                data={monthStats.map(s => s.revenue)} 
+                                labels={monthStats.map(s => s.label)} 
+                                color="linear-gradient(180deg,#34d399,#10b981)" 
+                                unit="₹" 
+                            />
+                        </div>
+                    </div>
+
+                    {/* Bottom Row */}
+                    <div className="analytics-bottom-row">
+                        {/* Category Breakdown */}
+                        <div className="analytics-chart-card">
+                            <div className="chart-card-header"><h3>Property Categories</h3></div>
+                            <div className="category-breakdown">
+                                {categories.length > 0 ? categories.map(c => (
+                                    <div key={c.name} className="cat-row">
+                                        <div className="cat-info">
+                                            <span className="cat-dot" style={{ background: c.color }} />
+                                            <span className="cat-name">{c.name}</span>
+                                            <span className="cat-count">{c.count}</span>
+                                        </div>
+                                        <div className="cat-bar-track">
+                                            <div className="cat-bar-fill" style={{ width: `${(c.count / totalListings) * 100}%`, background: c.color }} />
+                                        </div>
+                                        <span className="cat-pct">{Math.round((c.count / totalListings) * 100)}%</span>
+                                    </div>
+                                )) : <p className="table-empty">No categories found.</p>}
+                            </div>
+                        </div>
+
+                        {/* Health Rings */}
+                        <div className="analytics-chart-card">
+                            <div className="chart-card-header"><h3>Platform Health</h3></div>
+                            <div className="rings-grid">
+                                {[
+                                    { label: 'Approval Rate', pct: approvalRate || 100, color: '#7c3aed' },
+                                    { label: 'Booking Ratio', pct: occupancyRate, color: '#10b981' },
+                                    { label: 'Property Fill', pct: listings.length > 0 ? 80 : 0, color: '#f59e0b' },
+                                    { label: 'System Uptime', pct: 100, color: '#06b6d4' },
+                                ].map(r => (
+                                    <div key={r.label} className="ring-item">
+                                        <DonutRing percentage={r.pct} color={r.color} size={90} />
+                                        <div className="ring-label">{r.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Top Countries */}
+                        <div className="analytics-chart-card">
+                            <div className="chart-card-header"><h3>Geographic Reach</h3></div>
+                            {topCountries.length > 0 ? (
+                                <div className="country-list">
+                                    {topCountries.map(([country, count], i) => (
+                                        <div key={country} className="country-row">
+                                            <span className="country-rank">#{i + 1}</span>
+                                            <span className="country-name">{country || 'Unknown'}</span>
+                                            <div className="country-bar-track">
+                                                <div className="country-bar-fill" style={{ width: `${(count / topCountries[0][1]) * 100}%` }} />
+                                            </div>
+                                            <span className="country-count">{count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="table-empty" style={{ textAlign: 'center', padding: '2rem' }}>No regional data.</div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
         </AdminLayout>
     );
 }

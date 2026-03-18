@@ -12,6 +12,10 @@ const listingSchema = new Schema({
         url: String,
         filename: String
     },
+    images: [{
+        url: String,
+        filename: String
+    }],
     category: {
         type: String,
         default: "Stay",
@@ -19,6 +23,18 @@ const listingSchema = new Schema({
     price: Number,
     location: String,
     country: String,
+    roomType: {
+        type: String,
+        default: 'Single Room'
+    },
+    totalRooms: {
+        type: Number,
+        default: 1
+    },
+    availableRooms: {
+        type: Number,
+        default: 1
+    },
 
     reviews: [
         {

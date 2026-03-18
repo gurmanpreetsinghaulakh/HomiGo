@@ -12,10 +12,14 @@ export default function EditListing() {
         location: '',
         country: '',
         category: 'Stay',
+        roomType: 'Single Room',
+        customRoomType: '',
+        totalRooms: 1,
+        availableRooms: 1,
     });
-    const [file, setFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [originalImageUrl, setOriginalImageUrl] = useState('');
+    const [files, setFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [originalImages, setOriginalImages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const { showModal } = useGlobalModal();
@@ -27,17 +31,24 @@ export default function EditListing() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    const { title, description, price, location, country, category } = data.listings;
+                    const { title, description, price, location, country, category, roomType, totalRooms, availableRooms } = data.listings;
+                    const standardRoomTypes = ['Single Room', 'Double Room', 'Suite', 'Family Room', 'Studio', 'Dormitory'];
+                    const isStandardRoom = standardRoomTypes.includes(roomType);
                     setFormData({
                         title: title || '',
                         description: description || '',
                         price: price || '',
                         location: location || '',
                         country: country || '',
-                        category: category || 'Stay'
+                        category: category || 'Stay',
+                        roomType: isStandardRoom ? roomType : 'Other',
+                        customRoomType: isStandardRoom ? '' : (roomType || ''),
+                        totalRooms: totalRooms || 1,
+                        availableRooms: availableRooms !== undefined ? availableRooms : 1
                     });
-                    setOriginalImageUrl(data.originalImageUrl);
-                    setImagePreview(data.originalImageUrl);
+                    const existingImages = data.listings.images || (data.listings.Image ? [data.listings.Image] : []);
+                    setOriginalImages(existingImages);
+                    setImagePreviews(existingImages.map(img => img.url));
                 } else {
                     console.error(data.error);
                 }
@@ -51,17 +62,34 @@ export default function EditListing() {
     };
 
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        if (selectedFile) {
+        const selectedFiles = Array.from(e.target.files);
+        if (files.length + selectedFiles.length > 3) {
+            showModal({
+                title: 'Too Many Images',
+                message: 'You can only have a maximum of 3 images.',
+                type: 'error',
+                confirmText: 'Understood'
+            });
+            return;
+        }
+
+        const newFiles = [...files, ...selectedFiles];
+        setFiles(newFiles);
+        
+        const newPreviews = [...imagePreviews];
+        let processedCount = 0;
+        
+        selectedFiles.forEach(file => {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result);
+                newPreviews.push(reader.result);
+                processedCount++;
+                if (processedCount === selectedFiles.length) {
+                    setImagePreviews(newPreviews);
+                }
             };
-            reader.readAsDataURL(selectedFile);
-        } else {
-            setImagePreview(originalImageUrl);
-        }
+            reader.readAsDataURL(file);
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -74,8 +102,16 @@ export default function EditListing() {
         data.append('listing[location]', formData.location);
         data.append('listing[country]', formData.country);
         data.append('listing[category]', formData.category);
-        if (file) {
-            data.append('listing[Image]', file);
+        
+        const finalRoomType = formData.roomType === 'Other' ? formData.customRoomType : formData.roomType;
+        data.append('listing[roomType]', finalRoomType);
+        data.append('listing[totalRooms]', formData.totalRooms);
+        data.append('listing[availableRooms]', formData.availableRooms);
+        
+        if (files.length > 0) {
+            files.forEach(f => {
+                data.append('listing[Image]', f);
+            });
         }
 
         try {
@@ -166,7 +202,6 @@ export default function EditListing() {
                                             name="description"
                                             className="settings-input"
                                             style={{ width: '100%', minHeight: '140px', lineHeight: '1.6' }}
-                                            required
                                             onChange={handleInputChange}
                                             value={formData.description}
                                         ></textarea>
@@ -183,6 +218,71 @@ export default function EditListing() {
                                                 <option key={c} value={c}>{c}</option>
                                             ))}
                                         </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── ROOM DETAILS ── */}
+                        <div className="settings-section">
+                            <h3 className="settings-section-title">Room Details</h3>
+                            <div className="settings-fields">
+                                <div className="settings-field">
+                                    <div className="settings-field-label">
+                                        <span>Type of Room</span>
+                                    </div>
+                                    <div className="settings-field-control">
+                                        <select name="roomType" className="settings-input" onChange={handleInputChange} value={formData.roomType}>
+                                            {['Single Room', 'Double Room', 'Suite', 'Family Room', 'Studio', 'Dormitory', 'Other'].map(c => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                        {formData.roomType === 'Other' && (
+                                            <input
+                                                name="customRoomType"
+                                                placeholder="Specify the type of room"
+                                                type="text"
+                                                className="settings-input"
+                                                style={{ marginTop: '0.8rem' }}
+                                                required
+                                                onChange={handleInputChange}
+                                                value={formData.customRoomType}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="settings-field">
+                                    <div className="settings-field-label">
+                                        <span>Total Rooms</span>
+                                    </div>
+                                    <div className="settings-field-control">
+                                        <input
+                                            name="totalRooms"
+                                            type="number"
+                                            min="1"
+                                            className="settings-input"
+                                            required
+                                            onChange={handleInputChange}
+                                            value={formData.totalRooms}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="settings-field">
+                                    <div className="settings-field-label">
+                                        <span>Available Rooms</span>
+                                    </div>
+                                    <div className="settings-field-control">
+                                        <input
+                                            name="availableRooms"
+                                            type="number"
+                                            min="0"
+                                            className="settings-input"
+                                            required
+                                            onChange={handleInputChange}
+                                            value={formData.availableRooms}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -271,28 +371,60 @@ export default function EditListing() {
                                         transition: 'all 0.3s'
                                     }}
                                 >
-                                    <div style={{ position: 'relative' }}>
-                                        <img
-                                            src={imagePreview || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&auto=format&fit=crop'}
-                                            alt="Preview"
-                                            style={{ width: '100%', borderRadius: '0.6rem', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'block' }}
-                                        />
-                                    </div>
-                                    <div style={{ marginTop: '1.2rem' }}>
-                                        <p style={{ fontSize: '0.82rem', color: 'var(--db-muted)', marginBottom: '0.8rem' }}>
-                                            Upload a new photo to replace the existing one.
-                                        </p>
-                                        <label className="tbl-btn tbl-btn-edit" style={{ cursor: 'pointer', display: 'inline-block', padding: '0.6rem 1.2rem' }}>
-                                            Change Photo
-                                            <input type="file" style={{ display: 'none' }} onChange={handleFileChange} />
-                                        </label>
-                                        {file && (
+                                    <div style={{ display: 'grid', gap: '1rem' }}>
+                                        {imagePreviews.map((preview, index) => (
+                                            <div key={index} style={{ position: 'relative' }}>
+                                                <img
+                                                    src={preview}
+                                                    alt={`Preview ${index + 1}`}
+                                                    style={{ width: '100%', borderRadius: '0.6rem', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'block' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newPreviews = [...imagePreviews];
+                                                        newPreviews.splice(index, 1);
+                                                        setImagePreviews(newPreviews);
+                                                        
+                                                        // If it was a newly added file
+                                                        const previewIndexInFiles = index - originalImages.length;
+                                                        if (previewIndexInFiles >= 0) {
+                                                            const newFiles = [...files];
+                                                            newFiles.splice(previewIndexInFiles, 1);
+                                                            setFiles(newFiles);
+                                                        } else {
+                                                            // If it was an original image, we might want to track deletions
+                                                            // For now, let's just remove from preview
+                                                            const newOriginals = [...originalImages];
+                                                            newOriginals.splice(index, 1);
+                                                            setOriginalImages(newOriginals);
+                                                        }
+                                                    }}
+                                                    style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >✕</button>
+                                            </div>
+                                        ))}
+                                        {imagePreviews.length < 3 && (
+                                            <div style={{ marginTop: '1.2rem' }}>
+                                                <p style={{ fontSize: '0.82rem', color: 'var(--db-muted)', marginBottom: '0.8rem' }}>
+                                                    Upload up to {3 - imagePreviews.length} more photo(s).
+                                                </p>
+                                                <label className="tbl-btn tbl-btn-edit" style={{ cursor: 'pointer', display: 'inline-block', padding: '0.6rem 1.2rem' }}>
+                                                    Add Photo
+                                                    <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+                                                </label>
+                                            </div>
+                                        )}
+                                        {files.length > 0 && (
                                             <button
                                                 type="button"
                                                 className="settings-reset-btn"
-                                                style={{ marginLeft: '0.5rem', padding: '0.5rem 0.8rem', fontSize: '0.75rem' }}
-                                                onClick={() => { setFile(null); setImagePreview(originalImageUrl); }}
-                                            >Reset</button>
+                                                style={{ marginTop: '0.5rem', padding: '0.5rem 0.8rem', fontSize: '0.75rem' }}
+                                                onClick={() => { 
+                                                    setFiles([]); 
+                                                    setImagePreviews(originalImages.map(img => img.url)); 
+                                                }}
+                                            >Reset New Photos</button>
                                         )}
                                     </div>
                                 </div>
@@ -302,7 +434,7 @@ export default function EditListing() {
                                     <div className="db-listing-card" style={{ cursor: 'default', opacity: 0.8 }}>
                                         <div className="db-listing-img-wrap">
                                             <img
-                                                src={imagePreview}
+                                                src={imagePreviews[0]}
                                                 className="db-listing-img"
                                                 alt="Preview"
                                             />

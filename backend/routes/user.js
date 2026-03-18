@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
 const passport = require("passport");
-const { saveRedirectUrl } = require("../middleware.js");
+const { saveRedirectUrl, isLoggedIn } = require("../middleware.js");
 const usercontroller= require("../controllers/user.js");
+const listingcontroller = require("../controllers/listings.js");
 
 
 
@@ -25,5 +26,8 @@ router.route("/login")
 
 //logout  
 router.get("/logout", usercontroller.logout);
+
+// User specific data
+router.get("/user/bookings", isLoggedIn, wrapAsync(listingcontroller.getMyBookings));
 
 module.exports = router;
