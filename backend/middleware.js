@@ -10,6 +10,12 @@ module.exports.isLoggedIn = (req, res, next) => {
     console.log("User not authenticated, saving URL:", req.originalUrl);
     return res.status(401).json({ success: false, error: "You must be logged in" });
   }
+  if (req.user && req.user.isSuspended) {
+    req.logout((err) => {
+      if (err) console.error("Logout error in middleware:", err);
+    });
+    return res.status(403).json({ success: false, error: "Account is suspended" });
+  }
   next();
 };
 

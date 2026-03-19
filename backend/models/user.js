@@ -10,8 +10,12 @@ const userSchema = new Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    isSuspended: {
+        type: Boolean,
+        default: false
     }
-})
+}, { timestamps: true })
 userSchema.plugin(passportlocalmongoose);
 // this automatically add username salting and hashing
 module.exports = mongoose.model('User', userSchema);

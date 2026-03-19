@@ -1,5 +1,7 @@
-const passport = require("passport");
 const User = require("../models/user.js");
+const Listing = require("../models/listing.js");
+const Booking = require("../models/booking.js");
+const passport = require("passport");
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const BREVO_FROM_NAME = process.env.BREVO_FROM_NAME || "HomiGo";
@@ -172,6 +174,15 @@ module.exports.renderloginform = (req, res) => {
 
 
 module.exports.login = async (req, res) => {
+  if (req.user && req.user.isSuspended) {
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error during suspension check:", err);
+      }
+    });
+    return res.status(403).json({ success: false, error: "Account is suspended" });
+  }
+
   let RedirectUrl = req.user?.isAdmin ? "/admin-dashboard" : "/dashboard";
   if (res.locals.redirectUrl) {
     RedirectUrl = res.locals.redirectUrl;
@@ -185,6 +196,7 @@ module.exports.login = async (req, res) => {
     username: req.user?.username,
     email: req.user?.email,
     isAdmin: req.user?.isAdmin || false,
+    isSuspended: req.user?.isSuspended || false,
   };
   res.json({ success: true, message: "Welcome to HomiGo", RedirectUrl, user: userPayload });
 };
@@ -197,4 +209,41 @@ module.exports.logout = (req, res, next) => {
     }
     res.json({ success: true, message: "You are logged out!" });
   });
+};
+
+// Admin Controllers
+module.exports.getAllUsers = async (req, res) => {
+  const users = await User.find({}).select("-salt -hash").sort({ createdAt: -1 });
+  
+  const usersWithCounts = await Promise.all(users.map(async (user) => {
+    const listingsCount = await Listing.countDocuments({ owner: user._id });
+    const bookingsCount = await Booking.countDocuments({ user: user._id });
+    
+    const userObj = user.toObject();
+    if (!userObj.createdAt) {
+      userObj.createdAt = user._id.getTimestamp();
+    }
+    
+    return {
+      ...userObj,
+      listingsCount,
+      bookingsCount
+    };
+  }));
+
+  res.json({ success: true, users: usersWithCounts });
+};
+
+module.exports.toggleUserSuspension = async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ success: false, error: "User not found" });
+  }
+  if (user.isAdmin) {
+    return res.status(403).json({ success: false, error: "Cannot suspend an admin" });
+  }
+  user.isSuspended = !user.isSuspended;
+  await user.save();
+  res.json({ success: true, message: `User ${user.isSuspended ? "suspended" : "activated"} successfully`, user });
 };

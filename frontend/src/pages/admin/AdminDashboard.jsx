@@ -32,8 +32,10 @@ export default function AdminDashboard() {
                 const dataB = await resB.json();
                 if (dataB.success) setBookings(dataB.bookings);
 
-                // Fetch Users Count (Mocked for now as we don't have a list users endpoint yet)
-                setUsersCount(1); // At least the current admin
+                // Fetch Users Count
+                const resU = await fetch('/api/admin/users', { credentials: 'include' });
+                const dataU = await resU.json();
+                if (dataU.success) setUsersCount(dataU.users.length);
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
             } finally {

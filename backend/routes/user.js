@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
 const passport = require("passport");
-const { saveRedirectUrl, isLoggedIn } = require("../middleware.js");
+const { saveRedirectUrl, isLoggedIn, isAdmin } = require("../middleware.js");
 const usercontroller= require("../controllers/user.js");
 const listingcontroller = require("../controllers/listings.js");
 
@@ -29,5 +29,9 @@ router.get("/logout", usercontroller.logout);
 
 // User specific data
 router.get("/user/bookings", isLoggedIn, wrapAsync(listingcontroller.getMyBookings));
+
+// Admin routes
+router.get("/admin/users", isLoggedIn, isAdmin, wrapAsync(usercontroller.getAllUsers));
+router.patch("/admin/users/:id/suspend", isLoggedIn, isAdmin, wrapAsync(usercontroller.toggleUserSuspension));
 
 module.exports = router;

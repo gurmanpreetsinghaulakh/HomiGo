@@ -3,44 +3,78 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AdminLayout from '../../components/AdminLayout';
 
-// Simulated user data
-const MOCK_USERS = [
-    { id: 'u1', username: 'ketansingla3246', email: 'ketansingla3246@gmail.com', isAdmin: true, joined: '2026-01-01', listings: 0, bookings: 0, status: 'active' },
-    { id: 'u2', username: 'priya_sharma', email: 'priya@example.com', isAdmin: false, joined: '2026-01-15', listings: 2, bookings: 5, status: 'active' },
-    { id: 'u3', username: 'rahul_verma', email: 'rahul@example.com', isAdmin: false, joined: '2026-02-03', listings: 0, bookings: 3, status: 'active' },
-    { id: 'u4', username: 'ananya_patel', email: 'ananya@example.com', isAdmin: false, joined: '2026-02-20', listings: 1, bookings: 7, status: 'suspended' },
-    { id: 'u5', username: 'arjun_singh', email: 'arjun@example.com', isAdmin: false, joined: '2026-03-01', listings: 0, bookings: 2, status: 'active' },
-    { id: 'u6', username: 'neha_gupta', email: 'neha@example.com', isAdmin: false, joined: '2026-03-05', listings: 3, bookings: 11, status: 'active' },
-];
+// No mock data needed anymore
 
 export default function AdminUsers() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [users, setUsers] = useState(MOCK_USERS);
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selected, setSelected] = useState(null);
 
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const res = await fetch('/api/admin/users', {
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+                setUsers(data.users);
+            }
+        } catch (err) {
+            console.error("Error fetching users:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
         if (!user.isAdmin) { navigate('/dashboard'); return; }
+        fetchUsers();
     }, [user, navigate]);
 
     const filtered = users.filter(u => {
         const q = search.toLowerCase();
         const matchSearch = !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
         const matchRole = roleFilter === 'all' || (roleFilter === 'admin' ? u.isAdmin : !u.isAdmin);
-        const matchStatus = statusFilter === 'all' || u.status === statusFilter;
+        const status = u.isSuspended ? 'suspended' : 'active';
+        const matchStatus = statusFilter === 'all' || status === statusFilter;
         return matchSearch && matchRole && matchStatus;
     });
 
-    const toggleStatus = (id) => {
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
-        if (selected?.id === id) setSelected(prev => ({ ...prev, status: prev.status === 'active' ? 'suspended' : 'active' }));
+    const toggleStatus = async (id) => {
+        try {
+            const res = await fetch(`/api/admin/users/${id}/suspend`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+                setUsers(prev => prev.map(u => u._id === id ? { ...u, isSuspended: !u.isSuspended } : u));
+                if (selected?._id === id) {
+                    setSelected(prev => ({ ...prev, isSuspended: !prev.isSuspended }));
+                }
+            }
+        } catch (err) {
+            console.error("Error toggling status:", err);
+        }
     };
 
     if (!user) return null;
+    if (loading) return (
+        <AdminLayout title="Users" subtitle="Loading users...">
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+                <span className="spinner" />
+            </div>
+        </AdminLayout>
+    );
 
     return (
         <AdminLayout title="Users" subtitle={`${filtered.length} of ${users.length} users`}>
@@ -48,9 +82,9 @@ export default function AdminUsers() {
             <div className="admin-stats-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
                 {[
                     { icon: '👥', label: 'Total Users', value: users.length, accent: '#7c3aed' },
-                    { icon: '✅', label: 'Active', value: users.filter(u => u.status === 'active').length, accent: '#10b981' },
+                    { icon: '✅', label: 'Active', value: users.filter(u => !u.isSuspended).length, accent: '#10b981' },
                     { icon: '🛡', label: 'Admins', value: users.filter(u => u.isAdmin).length, accent: '#f59e0b' },
-                    { icon: '⛔', label: 'Suspended', value: users.filter(u => u.status === 'suspended').length, accent: '#ff385c' },
+                    { icon: '⛔', label: 'Suspended', value: users.filter(u => u.isSuspended).length, accent: '#ff385c' },
                 ].map(c => (
                     <div key={c.label} className="admin-stat-card" style={{ '--card-accent': c.accent }}>
                         <div className="admin-stat-icon">{c.icon}</div>
@@ -75,7 +109,7 @@ export default function AdminUsers() {
                     ))}
                     <div className="filter-divider" />
                     {[{ v: 'all', l: 'All Status' }, { v: 'active', l: 'Active' }, { v: 'suspended', l: 'Suspended' }].map(o => (
-                        <button key={o.v} className={`filter-pill ${statusFilter === o.v ? 'active' : ''}`} onClick={() => setStatusFilter(o.v)}>{o.l}</button>
+                        <button key={o.v} className={`filter-pill ${statusFilter === o.v ? 'active' : ''}`} onClick={() => setStatusFilter(o.v)} id={`status-filter-${o.v}`}>{o.l}</button>
                     ))}
                 </div>
             </div>
@@ -101,24 +135,28 @@ export default function AdminUsers() {
                                         {u.isAdmin ? '🛡 Admin' : '👤 User'}
                                     </span>
                                 </td>
-                                <td className="table-muted">{u.joined}</td>
-                                <td className="table-center">{u.listings}</td>
-                                <td className="table-center">{u.bookings}</td>
+                                <td className="table-muted">
+                                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-CA') : 'N/A'}
+                                </td>
+                                <td className="table-center">{u.listingsCount || 0}</td>
+                                <td className="table-center">{u.bookingsCount || 0}</td>
                                 <td>
-                                    <span className={`status-dot-badge ${u.status === 'active' ? 'status-active' : 'status-suspended'}`}>
-                                        {u.status === 'active' ? '● Active' : '● Suspended'}
+                                    <span className={`status-dot-badge ${!u.isSuspended ? 'status-active' : 'status-suspended'}`}>
+                                        {!u.isSuspended ? '● Active' : '● Suspended'}
                                     </span>
                                 </td>
                                 <td>
                                     <div className="table-actions">
-                                        <button className="tbl-btn tbl-btn-view" onClick={() => setSelected(u)} id={`view-user-${u.id}`}>Detail</button>
-                                        <button
-                                            className={`tbl-btn ${u.status === 'active' ? 'tbl-btn-suspend' : 'tbl-btn-activate'}`}
-                                            onClick={() => toggleStatus(u.id)}
-                                            id={`toggle-user-${u.id}`}
-                                        >
-                                            {u.status === 'active' ? 'Suspend' : 'Activate'}
-                                        </button>
+                                        <button className="tbl-btn tbl-btn-view" onClick={() => setSelected(u)} id={`view-user-${u._id}`}>Detail</button>
+                                        {!u.isAdmin && (
+                                            <button
+                                                className={`tbl-btn ${!u.isSuspended ? 'tbl-btn-suspend' : 'tbl-btn-activate'}`}
+                                                onClick={() => toggleStatus(u._id)}
+                                                id={`toggle-user-${u._id}`}
+                                            >
+                                                {!u.isSuspended ? 'Suspend' : 'Activate'}
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -149,22 +187,25 @@ export default function AdminUsers() {
                         </div>
                         <div className="modal-body">
                             <div className="modal-row"><span>Email</span><strong>{selected.email}</strong></div>
-                            <div className="modal-row"><span>Joined</span><strong>{selected.joined}</strong></div>
-                            <div className="modal-row"><span>Listings</span><strong>{selected.listings}</strong></div>
-                            <div className="modal-row"><span>Bookings</span><strong>{selected.bookings}</strong></div>
+                            <div className="modal-row"><span>Joined</span><strong>{selected.createdAt ? new Date(selected.createdAt).toLocaleDateString('en-CA') : 'N/A'}</strong></div>
+                            <div className="modal-row"><span>Listings</span><strong>{selected.listingsCount || 0}</strong></div>
+                            <div className="modal-row"><span>Bookings</span><strong>{selected.bookingsCount || 0}</strong></div>
                             <div className="modal-row"><span>Status</span>
-                                <span className={`status-dot-badge ${selected.status === 'active' ? 'status-active' : 'status-suspended'}`}>
-                                    {selected.status === 'active' ? '● Active' : '● Suspended'}
+                                <span className={`status-dot-badge ${!selected.isSuspended ? 'status-active' : 'status-suspended'}`}>
+                                    {!selected.isSuspended ? '● Active' : '● Suspended'}
                                 </span>
                             </div>
                         </div>
                         <div className="modal-actions">
-                            <button
-                                className={`modal-btn ${selected.status === 'active' ? 'modal-btn-cancel' : 'modal-btn-confirm'}`}
-                                onClick={() => toggleStatus(selected.id)}
-                            >
-                                {selected.status === 'active' ? '⛔ Suspend User' : '✓ Activate User'}
-                            </button>
+                            {!selected.isAdmin && (
+                                <button
+                                    className={`modal-btn ${!selected.isSuspended ? 'modal-btn-cancel' : 'modal-btn-confirm'}`}
+                                    onClick={() => toggleStatus(selected._id)}
+                                    id="modal-toggle-user"
+                                >
+                                    {!selected.isSuspended ? '⛔ Suspend User' : '✓ Activate User'}
+                                </button>
+                            )}
                             <button className="modal-btn modal-btn-close" onClick={() => setSelected(null)}>Close</button>
                         </div>
                     </div>
