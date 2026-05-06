@@ -1,494 +1,234 @@
 const sampleListings = [
   {
-    title: "Cozy Beachfront Cottage",
-    description:
-      "Escape to this charming beachfront cottage for a relaxing getaway. Enjoy stunning ocean views and easy access to the beach.",
-
+    title: "Taj Mahal Palace Hotel",
+    description: "Historic luxury hotel with sweeping views of the Arabian Sea, elegant rooms and world-class service.",
     Image: {
-      url: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aG90ZWx8ZW58MHx8MHx8fDA%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
+      filename: "taj-mahal-palace"
     },
-    price: 1500,
-    location: "Malibu",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80", filename: "taj-mahal-palace-1" },
+      { url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80", filename: "taj-mahal-palace-2" }
+    ],
+    price: 12000,
+    location: "Colaba",
+    country: "India",
+    category: "City",
+    roomType: "Deluxe Room",
+    totalRooms: 25,
+    availableRooms: 9,
     geometry: {
       type: "Point",
-      coordinates: [-118.7798, 34.0259] // Malibu, CA
-    },
+      coordinates: [72.8204, 18.9220]
+    }
   },
   {
-    title: "Modern Loft in Downtown",
-    description:
-      "Stay in the heart of the city in this stylish loft apartment. Perfect for urban explorers!",
-
+    title: "The Leela Palace New Delhi",
+    description: "Opulent palace hotel near diplomatic enclave with panoramic city views, lavish suites and signature dining.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1675745329954-9639d3b74bbf?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWx8ZW58MHx8MHx8fDA%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1533777324565-a040eb52fac2?auto=format&fit=crop&w=1200&q=80",
+      filename: "leela-palace-delhi"
     },
-    price: 1200,
-    location: "New York City",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1533777324565-a040eb52fac2?auto=format&fit=crop&w=1200&q=80", filename: "leela-palace-delhi-1" },
+      { url: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1200&q=80", filename: "leela-palace-delhi-2" }
+    ],
+    price: 9500,
+    location: "Chanakyapuri",
+    country: "India",
+    category: "City",
+    roomType: "Luxury Suite",
+    totalRooms: 30,
+    availableRooms: 11,
     geometry: {
       type: "Point",
-      coordinates: [-74.0060, 40.7128] // New York City, NY
-    },
+      coordinates: [77.1670, 28.6013]
+    }
   },
   {
-    title: "Mountain Retreat",
-    description:
-      "Unplug and unwind in this peaceful mountain cabin. Surrounded by nature, it's a perfect place to recharge.",
+    title: "Oberoi Udaivilas",
+    description: "Royal lakeside resort with heritage architecture, private courtyards and scenic views of Lake Pichola.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661964402307-02267d1423f5?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8aG90ZWx8ZW58MHx8MHx8fDA%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+      filename: "oberoi-udaivilas"
     },
-    price: 1000,
-    location: "Aspen",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80", filename: "oberoi-udaivilas-1" },
+      { url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80", filename: "oberoi-udaivilas-2" }
+    ],
+    price: 14000,
+    location: "Udaipur",
+    country: "India",
+    category: "Heritage",
+    roomType: "Court Room",
+    totalRooms: 20,
+    availableRooms: 5,
     geometry: {
       type: "Point",
-      coordinates: [-106.8175, 39.1911] // Aspen, CO
-    },
+      coordinates: [73.6804, 24.5768]
+    }
   },
   {
-    title: "Historic Villa in Tuscany",
-    description:
-      "Experience the charm of Tuscany in this beautifully restored villa. Explore the rolling hills and vineyards.",
+    title: "Alila Diwa Goa",
+    description: "Tranquil resort in scenic South Goa with spacious rooms, rice-paddy views and a private pool experience.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661901997525-fdbfb88d8554?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fHw%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      filename: "alila-diwa-goa"
     },
-    price: 2500,
-    location: "Florence",
-    country: "Italy",
+    images: [
+      { url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80", filename: "alila-diwa-goa-1" },
+      { url: "https://images.unsplash.com/photo-1524777314-02b9e39f87f5?auto=format&fit=crop&w=1200&q=80", filename: "alila-diwa-goa-2" }
+    ],
+    price: 7800,
+    location: "Majorda Beach",
+    country: "India",
+    category: "Beach",
+    roomType: "Pool View Room",
+    totalRooms: 22,
+    availableRooms: 7,
     geometry: {
       type: "Point",
-      coordinates: [11.2558, 43.7696] // Florence, Italy
-    },
+      coordinates: [73.9149, 15.2880]
+    }
   },
   {
-    title: "Secluded Treehouse Getaway",
-    description:
-      "Live among the treetops in this unique treehouse retreat. A true nature lover's paradise.",
-
+    title: "Taj Lake Palace",
+    description: "Iconic heritage hotel floating on Lake Pichola, offering landmark luxury and panoramic palace views.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661879252375-7c1db1932572?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDN8fHxlbnwwfHx8fHw%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1200&q=80",
+      filename: "taj-lake-palace"
     },
-    price: 800,
-    location: "Portland",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1200&q=80", filename: "taj-lake-palace-1" },
+      { url: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80", filename: "taj-lake-palace-2" }
+    ],
+    price: 16000,
+    location: "Udaipur",
+    country: "India",
+    category: "Heritage",
+    roomType: "Heritage Suite",
+    totalRooms: 18,
+    availableRooms: 4,
     geometry: {
       type: "Point",
-      coordinates: [-122.6784, 45.5152] // Portland, OR
-    },
+      coordinates: [73.6482, 24.5755]
+    }
   },
   {
-    title: "Beachfront Paradise",
-    description:
-      "Step out of your door onto the sandy beach. This beachfront condo offers the ultimate relaxation.",
-
+    title: "The Leela Kovalam",
+    description: "Cliff-top beach resort in Kerala with private cabanas, ayurvedic spa treatments and sweeping sea views.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661875135365-16aab794632f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80",
+      filename: "leela-kovalam"
     },
-    price: 2000,
-    location: "Cancun",
-    country: "Mexico",
+    images: [
+      { url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80", filename: "leela-kovalam-1" },
+      { url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80", filename: "leela-kovalam-2" }
+    ],
+    price: 8500,
+    location: "Kovalam",
+    country: "India",
+    category: "Beach",
+    roomType: "Sea View Suite",
+    totalRooms: 24,
+    availableRooms: 10,
     geometry: {
       type: "Point",
-      coordinates: [-86.8515, 21.1619] // Cancun, Mexico
-    },
+      coordinates: [76.9756, 8.4119]
+    }
   },
   {
-    title: "Rustic Cabin by the Lake",
-    description:
-      "Spend your days fishing and kayaking on the serene lake. This cozy cabin is perfect for outdoor enthusiasts.",
-
+    title: "The Oberoi Vanyavilas",
+    description: "Luxury tented resort near Ranthambore, perfect for wildlife safaris and elegant jungle stays.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661963128027-2efa79f39c5b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDl8fHxlbnwwfHx8fHw%3D",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+      filename: "oberoi-vanyavilas"
     },
-    price: 900,
-    location: "Lake Tahoe",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80", filename: "oberoi-vanyavilas-1" },
+      { url: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1200&q=80", filename: "oberoi-vanyavilas-2" }
+    ],
+    price: 11000,
+    location: "Ranthambore",
+    country: "India",
+    category: "Forest",
+    roomType: "Luxury Tent",
+    totalRooms: 16,
+    availableRooms: 6,
     geometry: {
       type: "Point",
-      coordinates: [-120.0324, 39.0968] // Lake Tahoe, CA/NV
-    },
+      coordinates: [76.5026, 26.0173]
+    }
   },
   {
-    title: "Luxury Penthouse with City Views",
-    description:
-      "Indulge in luxury living with panoramic city views from this stunning penthouse apartment.",
-
+    title: "Rambagh Palace",
+    description: "Grand palace hotel in Jaipur with royal interiors, sprawling gardens and signature dining.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661963630748-3de7ab820570?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEyfHx8ZW58MHx8fHx8",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80",
+      filename: "rambagh-palace"
     },
-    price: 3500,
-    location: "Los Angeles",
-    country: "United States",
+    images: [
+      { url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80", filename: "rambagh-palace-1" },
+      { url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80", filename: "rambagh-palace-2" }
+    ],
+    price: 12500,
+    location: "Jaipur",
+    country: "India",
+    category: "Heritage",
+    roomType: "Heritage Room",
+    totalRooms: 20,
+    availableRooms: 8,
     geometry: {
       type: "Point",
-      coordinates: [-118.2437, 34.0522] // Los Angeles, CA
-    },
+      coordinates: [75.8068, 26.9190]
+    }
   },
   {
-    title: "Ski-In/Ski-Out Chalet",
-    description:
-      "Hit the slopes right from your doorstep in this ski-in/ski-out chalet in the Swiss Alps.",
-
+    title: "Wildflower Hall, Shimla",
+    description: "Mountain resort in the Himalayas with cozy rooms, pine forest views and crisp fresh air.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1661956080119-71234af803b3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDE4fHx8ZW58MHx8fHx8",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1526662092013-493e106629c5?auto=format&fit=crop&w=1200&q=80",
+      filename: "wildflower-hall"
     },
-    price: 3000,
-    location: "Verbier",
-    country: "Switzerland",
+    images: [
+      { url: "https://images.unsplash.com/photo-1526662092013-493e106629c5?auto=format&fit=crop&w=1200&q=80", filename: "wildflower-hall-1" },
+      { url: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1200&q=80", filename: "wildflower-hall-2" }
+    ],
+    price: 7200,
+    location: "Shimla",
+    country: "India",
+    category: "Mountain",
+    roomType: "Deluxe Mountain View",
+    totalRooms: 18,
+    availableRooms: 7,
     geometry: {
       type: "Point",
-      coordinates: [7.2284, 46.0964] // Verbier, Switzerland
-    },
+      coordinates: [77.1734, 31.1048]
+    }
   },
   {
-    title: "Safari Lodge in the Serengeti",
-    description:
-      "Experience the thrill of the wild in a comfortable safari lodge. Witness the Great Migration up close.",
-
+    title: "The Fern Gir Forest Resort",
+    description: "Eco-friendly villa retreat near Gir National Park with open terraces, wildlife vibes and warm hospitality.",
     Image: {
-      url: "https://plus.unsplash.com/premium_photo-1733317296503-b1848b1df3aa?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDMxfHx8ZW58MHx8fHx8",
-      filename: "listingimage",
+      url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+      filename: "fern-gir-forest"
     },
-    price: 4000,
-    location: "Serengeti National Park",
-    country: "Tanzania",
+    images: [
+      { url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80", filename: "fern-gir-forest-1" },
+      { url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80", filename: "fern-gir-forest-2" }
+    ],
+    price: 6800,
+    location: "Gir",
+    country: "India",
+    category: "Forest",
+    roomType: "Forest Villa",
+    totalRooms: 12,
+    availableRooms: 5,
     geometry: {
       type: "Point",
-      coordinates: [34.8333, -2.3333] // Serengeti National Park, Tanzania
-    },
-  },
-  {
-    title: "Historic Canal House",
-    description:
-      "Stay in a piece of history in this beautifully preserved canal house in Amsterdam's iconic district.",
-
-    Image: {
-      url: "https://plus.unsplash.com/premium_photo-1682093002327-087f25034765?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDQzfHx8ZW58MHx8fHx8",
-      filename: "listingimage",
-    },
-    price: 1800,
-    location: "Amsterdam",
-    country: "Netherlands",
-    geometry: {
-      type: "Point",
-      coordinates: [4.9041, 52.3676] // Amsterdam, Netherlands
-    },
-  },
-  {
-    title: "Private Island Retreat",
-    description:
-      "Have an entire island to yourself for a truly exclusive and unforgettable vacation experience.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1618140052121-39fc6db33972?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bG9kZ2V8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 10000,
-    location: "Fiji",
-    country: "Fiji",
-    geometry: {
-      type: "Point",
-      coordinates: [179.4144, -16.5780] // Fiji
-    },
-  },
-  {
-    title: "Charming Cottage in the Cotswolds",
-    description:
-      "Escape to the picturesque Cotswolds in this quaint and charming cottage with a thatched roof.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1602088113235-229c19758e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8YmVhY2glMjB2YWNhdGlvbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1200,
-    location: "Cotswolds",
-    country: "United Kingdom",
-    geometry: {
-      type: "Point",
-      coordinates: [-1.8094, 51.8330] // Cotswolds, UK
-    },
-  },
-  {
-    title: "Historic Brownstone in Boston",
-    description:
-      "Step back in time in this elegant historic brownstone located in the heart of Boston.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1533619239233-6280475a633a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHNreSUyMHZhY2F0aW9ufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 2200,
-    location: "Boston",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-71.0589, 42.3601] // Boston, MA
-    },
-  },
-  {
-    title: "Beachfront Bungalow in Bali",
-    description:
-      "Relax on the sandy shores of Bali in this beautiful beachfront bungalow with a private pool.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1602391833977-358a52198938?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGNhbXBpbmd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1800,
-    location: "Bali",
-    country: "Indonesia",
-    geometry: {
-      type: "Point",
-      coordinates: [115.0920, -8.4095] // Bali, Indonesia
-    },
-  },
-  {
-    title: "Mountain View Cabin in Banff",
-    description:
-      "Enjoy breathtaking mountain views from this cozy cabin in the Canadian Rockies.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1521401830884-6c03c1c87ebb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGxvZGdlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1500,
-    location: "Banff",
-    country: "Canada",
-    geometry: {
-      type: "Point",
-      coordinates: [-115.5708, 51.1784] // Banff, Canada
-    },
-  },
-  {
-    title: "Art Deco Apartment in Miami",
-    description:
-      "Step into the glamour of the 1920s in this stylish Art Deco apartment in South Beach.",
-
-    Image: {
-      url: "https://plus.unsplash.com/premium_photo-1670963964797-942df1804579?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGxvZGdlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1600,
-    location: "Miami",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-80.1918, 25.7617] // Miami, FL
-    },
-  },
-  {
-    title: "Tropical Villa in Phuket",
-    description:
-      "Escape to a tropical paradise in this luxurious villa with a private infinity pool in Phuket.",
-    Image: {
-      url: "https://images.unsplash.com/photo-1470165301023-58dab8118cc9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGxvZGdlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 3000,
-    location: "Phuket",
-    country: "Thailand",
-    geometry: {
-      type: "Point",
-      coordinates: [98.3923, 7.8804] // Phuket, Thailand
-    },
-  },
-  {
-    title: "Historic Castle in Scotland",
-    description:
-      "Live like royalty in this historic castle in the Scottish Highlands. Explore the rugged beauty of the area.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1585543805890-6051f7829f98?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGJlYWNoJTIwdmFjYXRpb258ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 4000,
-    location: "Scottish Highlands",
-    country: "United Kingdom",
-    geometry: {
-      type: "Point",
-      coordinates: [-4.2026, 57.4778] // Scottish Highlands, UK
-    },
-  },
-  {
-    title: "Desert Oasis in Dubai",
-    description:
-      "Experience luxury in the middle of the desert in this opulent oasis in Dubai with a private pool.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1518684079-3c830dcef090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZHViYWl8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 5000,
-    location: "Dubai",
-    country: "United Arab Emirates",
-    geometry: {
-      type: "Point",
-      coordinates: [55.2708, 25.2048] // Dubai, UAE
-    },
-  },
-  {
-    title: "Rustic Log Cabin in Montana",
-    description:
-      "Unplug and unwind in this cozy log cabin surrounded by the natural beauty of Montana.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1586375300773-8384e3e4916f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGxvZGdlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1100,
-    location: "Montana",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-110.3626, 46.8059] // Montana, USA
-    },
-  },
-  {
-    title: "Beachfront Villa in Greece",
-    description:
-      "Enjoy the crystal-clear waters of the Mediterranean in this beautiful beachfront villa on a Greek island.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1602343168117-bb8ffe3e2e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8dmlsbGF8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 2500,
-    location: "Mykonos",
-    country: "Greece",
-    geometry: {
-      type: "Point",
-      coordinates: [25.3467, 37.4467] // Mykonos, Greece
-    },
-  },
-  {
-    title: "Eco-Friendly Treehouse Retreat",
-    description:
-      "Stay in an eco-friendly treehouse nestled in the forest. It's the perfect escape for nature lovers.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1488462237308-ecaa28b729d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8c2t5JTIwdmFjYXRpb258ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 750,
-    location: "Costa Rica",
-    country: "Costa Rica",
-    geometry: {
-      type: "Point",
-      coordinates: [-84.0907, 9.7489] // Costa Rica
-    },
-  },
-  {
-    title: "Historic Cottage in Charleston",
-    description:
-      "Experience the charm of historic Charleston in this beautifully restored cottage with a private garden.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1587381420270-3e1a5b9e6904?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGxvZGdlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1600,
-    location: "Charleston",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-79.9311, 32.7765] // Charleston, SC
-    },
-  },
-  {
-    title: "Modern Apartment in Tokyo",
-    description:
-      "Explore the vibrant city of Tokyo from this modern and centrally located apartment.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1480796927426-f609979314bd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fHRva3lvfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 2000,
-    location: "Tokyo",
-    country: "Japan",
-    geometry: {
-      type: "Point",
-      coordinates: [139.6917, 35.6895] // Tokyo, Japan
-    },
-  },
-  {
-    title: "Lakefront Cabin in New Hampshire",
-    description:
-      "Spend your days by the lake in this cozy cabin in the scenic White Mountains of New Hampshire.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1578645510447-e20b4311e3ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGNhbXBpbmd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1200,
-    location: "New Hampshire",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-71.5376, 43.4525] // New Hampshire, USA
-    },
-  },
-  {
-    title: "Luxury Villa in the Maldives",
-    description:
-      "Indulge in luxury in this overwater villa in the Maldives with stunning views of the Indian Ocean.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bGFrZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 6000,
-    location: "Maldives",
-    country: "Maldives",
-    geometry: {
-      type: "Point",
-      coordinates: [73.2207, 3.2028] // Maldives
-    },
-  },
-  {
-    title: "Ski Chalet in Aspen",
-    description:
-      "Hit the slopes in style with this luxurious ski chalet in the world-famous Aspen ski resort.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGxha2V8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 4000,
-    location: "Aspen",
-    country: "United States",
-    geometry: {
-      type: "Point",
-      coordinates: [-106.8175, 39.1911] // Aspen, CO (same as Mountain Retreat)
-    },
-  },
-  {
-    title: "Secluded Beach House in Costa Rica",
-    description:
-      "Escape to a secluded beach house on the Pacific coast of Costa Rica. Surf, relax, and unwind.",
-
-    Image: {
-      url: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmVhY2glMjBob3VzZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-      filename: "listingimage",
-    },
-    price: 1800,
-    location: "Costa Rica",
-    country: "Costa Rica",
-    geometry: {
-      type: "Point",
-      coordinates: [-85.8416, 9.9281] // Pacific Coast, Costa Rica
-    },
-  },
+      coordinates: [70.9218, 21.1200]
+    }
+  }
 ];
 
 module.exports = { data: sampleListings };

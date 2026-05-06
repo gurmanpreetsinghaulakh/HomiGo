@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalModal } from '../context/ModalContext';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { differenceInDays, addDays, format, isWithinInterval, startOfDay } from 'date-fns';
 import '../styles/showListing.css';
 
 export default function ShowListing() {
@@ -9,19 +12,109 @@ export default function ShowListing() {
     const { user } = useAuth();
     const { showModal, setModalLoading, closeModal } = useGlobalModal();
     const navigate = useNavigate();
-    const [listing, setListing] = useState(null);
+const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [checkIn, setCheckIn] = useState(addDays(new Date(), 1));
+    const [checkOut, setCheckOut] = useState(addDays(new Date(), 2));
+    const [dateAvailability, setDateAvailability] = useState({});
+    const [totalRooms, setTotalRooms] = useState(1);
     const [nights, setNights] = useState(1);
+    const [rooms, setRooms] = useState(1);
+    const [currentAvailable, setCurrentAvailable] = useState(1);
+    const [availabilityLoading, setAvailabilityLoading] = useState(false);
+
+    // Helper: get fully booked dates from dateAvailability
+    const getFullyBookedDates = () => {
+        const dates = [];
+        for (const [dateStr, data] of Object.entries(dateAvailability)) {
+            if (data.isFullyBooked) {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                dates.push(new Date(year, month - 1, day));
+            }
+        }
+        return dates;
+    };
+
+    // Helper: check if selected dates have availability
+    const checkDateAvailability = () => {
+        let minAvail = totalRooms;
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+        while (start < end) {
+            const dateStr = format(start, 'yyyy-MM-dd');
+            if (!dateAvailability[dateStr]) {
+                minAvail = 0;
+                break;
+            }
+            minAvail = Math.min(minAvail, dateAvailability[dateStr].availableRooms);
+            start.setDate(start.getDate() + 1);
+        }
+        setCurrentAvailable(minAvail);
+    };
 
     useEffect(() => {
+        if (checkIn && checkOut && Object.keys(dateAvailability).length > 0) {
+            checkDateAvailability();
+        }
+    }, [checkIn, checkOut, dateAvailability, totalRooms]);
+
+    useEffect(() => {
+        if (currentAvailable > 0 && rooms > currentAvailable) {
+            setRooms(currentAvailable);
+        }
+        if (currentAvailable === 0 && rooms !== 1) {
+            setRooms(1);
+        }
+    }, [currentAvailable, rooms]);
+
+    // Real-time refetch availability for selected dates
+    useEffect(() => {
+        if (checkIn && checkOut) {
+            const fetchAvailability = async () => {
+                setAvailabilityLoading(true);
+                try {
+                    const res = await fetch(`/api/listings/${id}/availability?checkIn=${format(checkIn, 'yyyy-MM-dd')}&checkOut=${format(checkOut, 'yyyy-MM-dd')}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        setDateAvailability(data.dateAvailability || {});
+                        setTotalRooms(data.totalRooms || 1);
+                    }
+                } catch (err) {
+                    console.error('Availability fetch error:', err);
+                } finally {
+                    setAvailabilityLoading(false);
+                }
+            };
+            fetchAvailability();
+        }
+    }, [checkIn, checkOut, id]);
+
+    // Update nights when dates change
+    useEffect(() => {
+        if (checkIn && checkOut) {
+            setNights(differenceInDays(checkOut, checkIn) || 1);
+        }
+    }, [checkIn, checkOut]);
+
+useEffect(() => {
         setLoading(true);
-        fetch(`/api/listings/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setListing(data.listings);
+        
+        Promise.all([
+            fetch(`/api/listings/${id}`).then(res => res.json()),
+            fetch(`/api/listings/${id}/availability?checkIn=${format(new Date(), 'yyyy-MM-dd')}&checkOut=${format(addDays(new Date(), 90), 'yyyy-MM-dd')}`).then(res => res.json())
+        ])
+            .then(([listingData, availData]) => {
+                if (listingData.success) {
+                    setListing(listingData.listings);
                 } else {
-                    console.error(data.error);
+                    console.error(listingData.error);
+                }
+                
+                if (availData.success) {
+                    setDateAvailability(availData.dateAvailability || {});
+                    setTotalRooms(availData.totalRooms || 1);
+                } else {
+                    console.error(availData.error);
                 }
             })
             .catch(console.error)
@@ -153,66 +246,128 @@ export default function ShowListing() {
 
                     {(!user || !user.isAdmin) ? (
                         <>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ fontSize: '0.8rem', color: 'var(--db-muted)', display: 'block', marginBottom: '0.4rem' }}>Stay Duration (Nights)</label>
-                                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', border: '1px solid var(--db-border)', padding: '0.4rem 0.8rem' }}>
-                                    <button 
-                                        onClick={() => setNights(prev => Math.max(1, prev - 1))}
-                                        style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.5rem', fontSize: '1.2rem' }}
-                                    >-</button>
-                                    <input 
-                                        type="number" 
-                                        value={nights}
-                                        onChange={(e) => setNights(Math.max(1, parseInt(e.target.value) || 1))}
-                                        style={{ flex: 1, background: 'none', border: 'none', color: 'white', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', width: '40px' }}
-                                    />
-                                    <button 
-                                        onClick={() => setNights(prev => prev + 1)}
-                                        style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.5rem', fontSize: '1.2rem' }}
-                                    >+</button>
+<div style={{ marginBottom: '1rem' }}>
+                                <label style={{ fontSize: '0.8rem', color: 'var(--db-muted)', display: 'block', marginBottom: '0.4rem' }}>Select Dates</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                    <div>
+                                        <label style={{ fontSize: '0.7rem', color: '#aaa' }}>Check-in</label>
+<DatePicker
+                                            selected={checkIn}
+                                            onChange={(date) => {
+                                                setCheckIn(date);
+                                                if (date >= checkOut) setCheckOut(addDays(date, 1));
+                                            }}
+                                            selectsStart
+                                            startDate={checkIn}
+                                            endDate={checkOut}
+                                            minDate={addDays(new Date(), 1)}
+                                            maxDate={addDays(new Date(), 90)}
+                                            excludeDates={getFullyBookedDates()}
+                                            className="date-picker-input"
+                                            dateFormat="MMM dd, yyyy"
+                                            placeholderText="Check-in"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.7rem', color: '#aaa' }}>Check-out</label>
+<DatePicker
+                                            selected={checkOut}
+                                            onChange={(date) => setCheckOut(date)}
+                                            selectsEnd
+                                            startDate={checkIn}
+                                            endDate={checkOut}
+                                            minDate={checkIn ? addDays(checkIn, 1) : addDays(new Date(), 2)}
+                                            maxDate={addDays(new Date(), 90)}
+                                            excludeDates={getFullyBookedDates()}
+                                            className="date-picker-input"
+                                            dateFormat="MMM dd, yyyy"
+                                            placeholderText="Check-out"
+                                        />
+                                    </div>
                                 </div>
+                                <p style={{ fontSize: '0.75rem', color: '#ff385c', marginTop: '0.4rem' }}>
+                                    {differenceInDays(checkOut, checkIn)} nights selected
+                                </p>
                             </div>
 
-                            <div style={{ marginTop: '0.5rem', marginBottom: '1rem', padding: '0.8rem', background: listing.availableRooms > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '0.5rem', border: `1px solid ${listing.availableRooms > 0 ? '#10b981' : '#ef4444'}` }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: listing.availableRooms > 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
-                                    <span>{listing.availableRooms > 0 ? '✅' : '❌'}</span>
-                                    <span>{listing.availableRooms > 0 ? `${listing.availableRooms} Room${listing.availableRooms > 1 ? 's' : ''} Available` : 'Sold Out'}</span>
+                            <div className={`availability-summary ${currentAvailable > 0 ? 'available' : 'sold-out'}`}>
+                                <div className={`availability-status ${currentAvailable > 0 ? 'available' : 'sold-out'}`}>
+                                    <span className="availability-icon">{currentAvailable > 0 ? '✅' : '❌'}</span>
+                                    <span>{currentAvailable > 0 ? `${currentAvailable} Room${currentAvailable > 1 ? 's' : ''} Available` : 'Sold Out'}</span>
                                 </div>
+
+                                {totalRooms > 1 && (
+                                    <div className="rooms-counter">
+                                        <div className="rooms-counter-header">
+                                            <span className="rooms-counter-title">Selected rooms</span>
+                                            <span className="rooms-counter-subtitle">Match this stay with your group size</span>
+                                        </div>
+                                        <div className="availability-progress">
+                                            <div className="progress-fill" style={{ '--progress': `${Math.max(0, 100 - (currentAvailable / totalRooms) * 100)}%` }}></div>
+                                        </div>
+                                        <div className="rooms-controls">
+                                            <button 
+                                                className="room-btn room-btn-minus" 
+                                                onClick={() => setRooms(Math.max(1, rooms - 1))}
+                                                disabled={rooms <= 1 || availabilityLoading}
+                                            >−</button>
+                                            <div className="rooms-display">{rooms}</div>
+                                            <button 
+                                                className="room-btn room-btn-plus" 
+                                                onClick={() => setRooms(Math.min(rooms + 1, currentAvailable))}
+                                                disabled={rooms >= currentAvailable || availabilityLoading}
+                                            >+</button>
+                                        </div>
+                                        <small className="rooms-counter-note">
+                                            Max: {currentAvailable} / Total: {totalRooms}
+                                        </small>
+                                    </div>
+                                )}
+                                {availabilityLoading && <div className="availability-loading">🔄 Checking real-time availability...</div>}
                             </div>
 
-                            <button className="book-btn-primary" disabled={listing.availableRooms <= 0} style={{ opacity: listing.availableRooms <= 0 ? 0.5 : 1, cursor: listing.availableRooms <= 0 ? 'not-allowed' : 'pointer' }} onClick={() => {
-                                if (!user) {
-                                    navigate('/login');
-                                } else {
-                                    const totalCost = listing.price * nights + Math.round(listing.price * 0.01);
-                                    navigate(`/payment/${id}`, { 
-                                        state: { 
-                                            listing, 
-                                            nights, 
-                                            totalCost 
-                                        } 
-                                    });
-                                }
-                            }}>
-                                {listing.availableRooms > 0 ? "Book Room" : "No Rooms Available"}
-                            </button>
+                            {(() => {
+                                const totalCost = listing.price * nights * rooms + Math.round(listing.price * 0.01 * rooms);
+                                return (
+                                    <>
+                                        <button className="book-btn-primary" disabled={currentAvailable <= 0 || availabilityLoading} style={{ opacity: (currentAvailable <= 0 || availabilityLoading) ? 0.5 : 1, cursor: (currentAvailable <= 0 || availabilityLoading) ? 'not-allowed' : 'pointer' }} onClick={() => {
+                                            if (!user) {
+                                                navigate('/login');
+                                            } else {
+                                                navigate(`/payment/${id}`, { 
+                                                    state: { 
+                                                        listing, 
+                                                        nights,
+                                                        checkIn: format(checkIn, 'yyyy-MM-dd'),
+                                                        checkOut: format(checkOut, 'yyyy-MM-dd'),
+                                                        totalCost,
+                                                        rooms
+                                                    } 
+                                                });
+                                            }
+                                        }}>
+                                            {availabilityLoading ? '🔄 Checking...' : currentAvailable > 0 ? `Book ${rooms > 1 ? `${rooms} Rooms` : 'Room'} (${nights} nights)` : "No Rooms Available"}
+                                        </button>
 
-                            <div className="booking-footer">
-                                <p className="booking-note">You won't be charged yet</p>
+                                        <div className="booking-footer">
+                                            <p className="booking-note">You won't be charged yet</p>
 
-                                <div className="booking-calc-row">
-                                    <span style={{ textDecoration: 'underline' }}>₹{listing.price?.toLocaleString()} x {nights} night{nights > 1 ? 's' : ''}</span>
-                                    <span>₹{(listing.price * nights).toLocaleString()}</span>
-                                </div>
-                                <div className="booking-calc-row">
-                                    <span style={{ textDecoration: 'underline' }}>Cleaning fee</span>
-                                    <span>₹{Math.round(listing.price * 0.01).toLocaleString()}</span>
-                                </div>
-                                <div className="booking-calc-row total">
-                                    <span>Total cost</span>
-                                    <span>₹{(listing.price * nights + Math.round(listing.price * 0.01)).toLocaleString()}</span>
-                                </div>
-                            </div>
+                                            <div className="booking-calc-row">
+                                                <span style={{ textDecoration: 'underline' }}>₹{listing.price?.toLocaleString()} x {nights} night{nights > 1 ? 's' : ''} x {rooms} room{rooms > 1 ? 's' : ''}</span>
+                                                <span>₹{(listing.price * nights * rooms).toLocaleString()}</span>
+                                            </div>
+                                            <div className="booking-calc-row">
+                                                <span style={{ textDecoration: 'underline' }}>Cleaning fee</span>
+                                                <span>₹{Math.round(listing.price * 0.01 * rooms).toLocaleString()}</span>
+                                            </div>
+                                            <div className="booking-calc-row total">
+                                                <span>Total cost</span>
+                                                <span>₹{totalCost.toLocaleString('en-IN')}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </>
                     ) : (
                         <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.8rem', border: '1px solid var(--db-border)', textAlign: 'center' }}>
