@@ -200,5 +200,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 4000; // Render supplies PORT
 app.listen(PORT, () => {
     console.log('Server listening on port', PORT);
-    console.log(`Local listings URL: http://localhost:${PORT}/listings`);
+    console.log(`Local listings URL: http://localhost:${PORT}`);
 });

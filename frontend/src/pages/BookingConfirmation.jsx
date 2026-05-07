@@ -5,7 +5,7 @@ import '../styles/showListing.css';
 export default function BookingConfirmation() {
     const location = useLocation();
     const navigate = useNavigate();
-const { listingTitle, totalCost, nights, checkIn, checkOut } = location.state || {};
+const { listingTitle, totalCost, nights, checkIn, checkOut, bookingId } = location.state || {};
 
     useEffect(() => {
         if (!listingTitle) {
@@ -38,11 +38,11 @@ const { listingTitle, totalCost, nights, checkIn, checkOut } = location.state ||
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                         <span style={{ color: '#7c7c8a' }}>Order Status:</span>
-                        <span style={{ color: '#f59e0b', fontWeight: '800' }}>PAID - PENDING APPROVAL</span>
+                        <span style={{ color: '#22c55e', fontWeight: '800' }}>PAID & CONFIRMED</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                        <span style={{ color: '#7c7c8a' }}>Transaction ID:</span>
-                        <span style={{ color: '#f5f5f7' }}>#{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                        <span style={{ color: '#7c7c8a' }}>Booking Reference:</span>
+                        <span style={{ color: '#f5f5f7' }}>{bookingId ? `#${bookingId.slice(-8).toUpperCase()}` : `#${Math.random().toString(36).substr(2, 9).toUpperCase()}`}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: '#7c7c8a' }}>Total Paid:</span>

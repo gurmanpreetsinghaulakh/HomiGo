@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const listing = require("../models/listing");
 const Booking = require("../models/booking");
+const { sendBookingConfirmationEmail } = require("./user.js");
 
 const DEFAULT_TOTAL_ROOMS = 20;
 
@@ -375,6 +376,17 @@ module.exports.bookListing = async (req, res) => {
       await session.commitTransaction();
     } else {
       await newBooking.save();
+    }
+
+    try {
+      await sendBookingConfirmationEmail(
+        req.user.email,
+        req.user.username || req.user.email,
+        newBooking,
+        listingToBook
+      );
+    } catch (emailError) {
+      console.error('Booking confirmation email error:', emailError);
     }
 
     res.json({ success: true, message: 'Booking successful', booking: newBooking });

@@ -67,7 +67,16 @@ useEffect(() => {
                 const data = await res.json();
                 
 if (data.success) {
-                    navigate('/confirmation', { state: { listingTitle: listing.title, totalCost, nights, checkIn, checkOut } });
+                    navigate('/confirmation', {
+                        state: {
+                            listingTitle: listing.title,
+                            totalCost,
+                            nights,
+                            checkIn,
+                            checkOut,
+                            bookingId: data.booking ? data.booking._id : null
+                        }
+                    });
                 } else {
                     showModal({
                         title: 'Payment Failed',
