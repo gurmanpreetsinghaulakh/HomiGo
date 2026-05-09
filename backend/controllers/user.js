@@ -259,6 +259,61 @@ module.exports.logout = (req, res, next) => {
 
 module.exports.sendBookingConfirmationEmail = sendBookingConfirmationEmail;
 
+module.exports.getWishlist = async (req, res) => {
+  const user = await User.findById(req.user._id).populate('wishlist');
+  res.json({ success: true, wishlist: user.wishlist || [] });
+};
+
+module.exports.toggleWishlist = async (req, res) => {
+  const { listingId } = req.params;
+  const user = await User.findById(req.user._id);
+  const listing = await Listing.findById(listingId);
+  if (!listing) {
+    return res.status(404).json({ success: false, error: 'Listing not found' });
+  }
+
+  const wishlistIds = user.wishlist.map((item) => item.toString());
+  const listingIdStr = listing._id.toString();
+  const index = wishlistIds.indexOf(listingIdStr);
+  let action;
+
+  if (index >= 0) {
+    user.wishlist = user.wishlist.filter((item) => item.toString() !== listingIdStr);
+    action = 'removed';
+  } else {
+    user.wishlist.push(listing._id);
+    action = 'added';
+  }
+
+  await user.save();
+  await user.populate('wishlist');
+
+  res.json({ success: true, action, wishlist: user.wishlist });
+};
+
+module.exports.getUserReviews = async (req, res) => {
+  const reviews = await require('../models/review.js')
+    .find({ author: req.user._id })
+    .populate({
+      path: 'listing',
+      select: 'title location country price Image'
+    })
+    .sort({ createdAt: -1 });
+
+  // Backfill missing listing references for older review documents
+  const ListingModel = require('../models/listing.js');
+  for (const review of reviews) {
+    if (!review.listing) {
+      const listing = await ListingModel.findOne({ reviews: review._id }).select('title location country price Image');
+      if (listing) {
+        review.listing = listing;
+      }
+    }
+  }
+
+  res.json({ success: true, reviews });
+};
+
 // Admin Controllers
 module.exports.getAllUsers = async (req, res) => {
   const users = await User.find({}).select("-salt -hash").sort({ createdAt: -1 });

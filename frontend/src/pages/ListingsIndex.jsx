@@ -8,28 +8,37 @@ export default function ListingsIndex() {
     const { user } = useAuth();
     const { showModal } = useGlobalModal();
     const [listings, setListings] = useState([]);
-    // No loading state needed
     const [loading, setLoading] = useState(true);
     const [showTaxes, setShowTaxes] = useState(false);
     const [wishlist, setWishlist] = useState(new Set());
 
     const [searchParams] = useSearchParams();
 
-    // Removed infinite scroll refs
-
     // Get active category from URL
     const activeCategory = searchParams.get('category') || 'All';
     const q = searchParams.get('q');
 
+    const loadWishlist = useCallback(async () => {
+        if (!user) return;
+        try {
+            const res = await fetch('/api/user/wishlist');
+            const data = await res.json();
+            if (data.success) {
+                setWishlist(new Set((data.wishlist || []).map((item) => item._id.toString())));
+            }
+        } catch (err) {
+            console.error('Wishlist load failed:', err);
+        }
+    }, [user]);
+
     // Reset on param change
     useEffect(() => {
         setListings([]);
-        setWishlist(new Set());
         setLoading(true);
         fetchListings();
     }, [searchParams]);
 
-    // Initial load + pagination
+    // Initial load + wishlist load
     const fetchListings = useCallback(async () => {
         setLoading(true);
         const category = searchParams.get('category');
@@ -49,6 +58,7 @@ export default function ListingsIndex() {
                 setListings(data.listings || []);
             } else {
                 console.error(data.error);
+                setListings([]);
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -60,7 +70,8 @@ export default function ListingsIndex() {
 
     useEffect(() => {
         fetchListings();
-    }, [fetchListings]);
+        loadWishlist();
+    }, [fetchListings, loadWishlist]);
 
 
 
@@ -86,27 +97,39 @@ export default function ListingsIndex() {
     const listingCount = listings.length;
 
     // Toggle wishlist
-    const toggleWishlist = useCallback((id) => {
-        setWishlist(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(id)) {
-                newSet.delete(id);
-                showModal({
-                    title: 'Removed from Wishlist',
-                    message: 'Added back to explore list',
-                    type: 'info'
-                });
-            } else {
-                newSet.add(id);
-                showModal({
-                    title: 'Added to Wishlist ❤️',
-                    message: 'Saved for later',
-                    type: 'success'
-                });
+    const toggleWishlist = useCallback(async (id) => {
+        if (!user) {
+            showModal({
+                title: 'Login required',
+                message: 'Please sign in to save favorites.',
+                type: 'warning'
+            });
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/user/wishlist/${id}`, { method: 'POST' });
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Unable to update wishlist');
             }
-            return newSet;
-        });
-    }, [showModal]);
+
+            setWishlist(prev => {
+                const newSet = new Set(prev);
+                if (data.action === 'added') {
+                    newSet.add(id);
+                    showModal({ title: 'Added to Wishlist ❤️', message: 'Saved for later', type: 'success' });
+                } else {
+                    newSet.delete(id);
+                    showModal({ title: 'Removed from Wishlist', message: 'Added back to explore list', type: 'info' });
+                }
+                return newSet;
+            });
+        } catch (err) {
+            console.error('Wishlist update failed:', err);
+            showModal({ title: 'Wishlist error', message: err.message || 'Unable to save your wishlist', type: 'error' });
+        }
+    }, [showModal, user]);
 
     const getImageUrl = (listing) => {
         return listing.Image?.url || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&auto=format&fit=crop';

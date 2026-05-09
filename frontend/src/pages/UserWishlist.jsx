@@ -13,19 +13,37 @@ export default function UserWishlist() {
         if (!user) { navigate('/login'); return; }
         if (user.isAdmin) { navigate('/admin-dashboard'); return; }
 
-        // Fetch real listings but mock them as "saved" for now
-        fetch('/api/listings')
-            .then(r => r.json())
-            .then(data => {
-                const list = data.listings || (Array.isArray(data) ? data : []);
-                setWishlist(list.slice(0, 3)); // Mock: first 3 are saved
-            })
-            .catch(() => { })
-            .finally(() => setLoading(false));
+        const loadWishlist = async () => {
+            try {
+                const res = await fetch('/api/user/wishlist');
+                const data = await res.json();
+                if (data.success) {
+                    setWishlist(data.wishlist || []);
+                } else {
+                    console.error(data.error);
+                    setWishlist([]);
+                }
+            } catch (err) {
+                console.error('Wishlist load failed:', err);
+                setWishlist([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadWishlist();
     }, [user, navigate]);
 
-    const removeFromWishlist = (id) => {
-        setWishlist(prev => prev.filter(l => l._id !== id));
+    const removeFromWishlist = async (id) => {
+        try {
+            const res = await fetch(`/api/user/wishlist/${id}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                setWishlist(prev => prev.filter(l => l._id !== id));
+            }
+        } catch (err) {
+            console.error('Remove wishlist item failed:', err);
+        }
     };
 
     if (!user) return null;
@@ -54,7 +72,7 @@ export default function UserWishlist() {
                         }}>
                             <div style={{ position: 'relative' }}>
                                 <img
-                                    src={l.image?.url || 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&auto=format&fit=crop'}
+                                    src={l.image?.url || l.Image?.url || 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&auto=format&fit=crop'}
                                     alt={l.title}
                                     style={{ width: '100%', height: '180px', objectFit: 'cover' }}
                                 />
@@ -74,7 +92,7 @@ export default function UserWishlist() {
                                 <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '0.4rem' }}>{l.title}</h3>
                                 <p style={{ fontSize: '0.82rem', color: 'var(--db-muted)', marginBottom: '0.8rem' }}>{l.location}, {l.country}</p>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <strong>₹{l.price?.toLocaleString()}<span style={{ fontWeight: 'normal', fontSize: '0.8rem' }}> /night</span></strong>
+                                    <strong>₹{Number(l.price || 0).toLocaleString()}<span style={{ fontWeight: 'normal', fontSize: '0.8rem' }}> /night</span></strong>
                                     <Link to={`/listings/${l._id}`} className="tbl-btn tbl-btn-view" style={{ fontSize: '0.75rem' }}>View Details</Link>
                                 </div>
                             </div>

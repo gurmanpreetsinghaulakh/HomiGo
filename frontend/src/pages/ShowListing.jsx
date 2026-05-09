@@ -22,6 +22,9 @@ const [listing, setListing] = useState(null);
     const [rooms, setRooms] = useState(1);
     const [currentAvailable, setCurrentAvailable] = useState(1);
     const [availabilityLoading, setAvailabilityLoading] = useState(false);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [reviewError, setReviewError] = useState('');
 
     // Helper: get fully booked dates from dateAvailability
     const getFullyBookedDates = () => {
@@ -121,6 +124,44 @@ useEffect(() => {
             .finally(() => setLoading(false));
     }, [id]);
 
+    const handleReviewSubmit = async (event) => {
+        event.preventDefault();
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        setSubmittingReview(true);
+        setReviewError('');
+
+        try {
+            const res = await fetch(`/api/listings/${id}/reviews`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ review: reviewForm })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Could not submit review');
+            }
+            setListing(prev => ({
+                ...prev,
+                reviews: [...(prev.reviews || []), { ...data.review, author: user }]
+            }));
+            setReviewForm({ rating: 5, comment: '' });
+        } catch (err) {
+            setReviewError(err.message || 'Could not submit review');
+            console.error(err);
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
+    const userHasReviewed = !!listing?.reviews?.find(rev => rev.author?._id === user?._id || rev.author === user?._id);
+
+    const handleReviewInput = (field, value) => {
+        setReviewForm(prev => ({ ...prev, [field]: value }));
+    };
+
     const handleDelete = () => {
         showModal({
             title: 'Delete Listing',
@@ -165,7 +206,7 @@ useEffect(() => {
         </div>
     );
 
-    const isOwnerOrAdmin = user && (user.isAdmin || user._id === listing.owner?._id);
+    const isOwnerOrAdmin = user && (user.isAdmin || listing.owner?._id?.toString() === user._id?.toString());
 
     return (
         <div className="show-page-container">
@@ -220,6 +261,71 @@ useEffect(() => {
                         <p style={{ whiteSpace: 'pre-line' }}>{listing.description}</p>
                     </div>
 
+                    <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.04)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Guest Reviews</h3>
+                                <p style={{ margin: '0.4rem 0 0', color: 'var(--db-muted)' }}>{listing.reviews?.length || 0} review{listing.reviews?.length === 1 ? '' : 's'}</p>
+                            </div>
+                            {user && !user.isAdmin && !userHasReviewed && (
+                                <span style={{ color: '#10b981', fontWeight: 700 }}>Write a review for this home</span>
+                            )}
+                        </div>
+
+                        <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.25rem' }}>
+                            {listing.reviews?.map((review) => (
+                                <div key={review._id} style={{ padding: '1.2rem', borderRadius: '0.9rem', background: 'rgba(255,255,255,0.03)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                                        <div>
+                                            <strong>{review.author?.username || 'Guest'}</strong>
+                                            <div style={{ marginTop: '0.35rem', color: 'var(--db-muted)', fontSize: '0.95rem' }}>
+                                                {new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{'⭐'.repeat(review.rating || 0)}{'☆'.repeat(5 - (review.rating || 0))}</div>
+                                    </div>
+                                    <p style={{ marginTop: '1rem', lineHeight: 1.7, color: 'var(--db-text)' }}>{review.comment}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {user && !user.isAdmin && (
+                            <form onSubmit={handleReviewSubmit} style={{ marginTop: '1.75rem' }}>
+                                <h4 style={{ marginBottom: '0.75rem' }}>{userHasReviewed ? 'You already left a review for this property.' : 'Leave your review'}</h4>
+                                <div style={{ display: 'grid', gap: '0.85rem' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Rating</label>
+                                    <select
+                                        value={reviewForm.rating}
+                                        onChange={(e) => handleReviewInput('rating', Number(e.target.value))}
+                                        disabled={userHasReviewed}
+                                        style={{ width: '100px', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #d1d5db' }}
+                                    >
+                                        {[5, 4, 3, 2, 1].map((value) => (
+                                            <option key={value} value={value}>{value} star{value > 1 ? 's' : ''}</option>
+                                        ))}
+                                    </select>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Comment</label>
+                                    <textarea
+                                        value={reviewForm.comment}
+                                        onChange={(e) => handleReviewInput('comment', e.target.value)}
+                                        rows={4}
+                                        disabled={userHasReviewed}
+                                        style={{ width: '100%', padding: '1rem', borderRadius: '0.9rem', border: '1px solid #d1d5db' }}
+                                    />
+                                    {reviewError && <div style={{ color: '#ef4444', fontSize: '0.9rem' }}>{reviewError}</div>}
+                                    <button
+                                        type="submit"
+                                        className="tbl-btn tbl-btn-edit"
+                                        disabled={userHasReviewed || submittingReview}
+                                        style={{ width: 'fit-content', fontSize: '0.95rem' }}
+                                    >
+                                        {submittingReview ? 'Submitting…' : userHasReviewed ? 'Review already submitted' : 'Submit Review'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+
                     {/* Admin Actions */}
                     {isOwnerOrAdmin && (
                         <div className="admin-action-btns">
@@ -239,9 +345,9 @@ useEffect(() => {
                         <div className="booking-price-value">
                             ₹{listing.price?.toLocaleString('en-IN')} <span className="price-unit">/ night</span>
                         </div>
-                        <div className="booking-rating">
+                        {/* <div className="booking-rating">
                             ⭐ 4.9 &bull; <span style={{ textDecoration: 'underline' }}>12 reviews</span>
-                        </div>
+                        </div> */}
                     </div>
 
                     {(!user || !user.isAdmin) ? (
